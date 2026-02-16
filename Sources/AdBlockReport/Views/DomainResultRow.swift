@@ -31,3 +31,18 @@ struct DomainResultRow: View {
         .padding(.horizontal, 8)
     }
 }
+
+#Preview("Blocked") {
+    DomainResultRow(result: TestResult(
+        domain: TestDomain(hostname: "pagead2.googlesyndication.com", provider: "Google Ads", category: .ads),
+        isBlocked: true
+    ))
+}
+
+#Preview("Exposed") {
+    DomainResultRow(result: TestResult(
+        domain: TestDomain(hostname: "analytics.google.com", provider: "Google Analytics", category: .analytics),
+        isBlocked: false,
+        responseTimeMs: 142
+    ))
+}

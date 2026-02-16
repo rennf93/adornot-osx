@@ -48,3 +48,11 @@ struct CategoryResultView: View {
         }
     }
 }
+
+#Preview {
+    CategoryResultView(
+        category: .ads,
+        results: PreviewData.sampleAdsResults
+    )
+    .padding()
+}

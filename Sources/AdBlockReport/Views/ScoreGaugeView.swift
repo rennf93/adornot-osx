@@ -45,3 +45,21 @@ struct ScoreGaugeView: View {
         }
     }
 }
+
+#Preview("High Score") {
+    ScoreGaugeView(score: 82, animateOnAppear: true)
+        .frame(width: 220, height: 220)
+        .padding()
+}
+
+#Preview("Medium Score") {
+    ScoreGaugeView(score: 45, animateOnAppear: true)
+        .frame(width: 220, height: 220)
+        .padding()
+}
+
+#Preview("Low Score") {
+    ScoreGaugeView(score: 15, animateOnAppear: true)
+        .frame(width: 220, height: 220)
+        .padding()
+}

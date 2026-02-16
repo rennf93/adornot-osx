@@ -87,3 +87,9 @@ struct SettingsView: View {
         .navigationTitle("About")
     }
 }
+
+#Preview {
+    NavigationStack {
+        SettingsView(viewModel: PreviewData.makeIdleViewModel())
+    }
+}

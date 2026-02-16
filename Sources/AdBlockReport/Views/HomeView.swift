@@ -60,3 +60,24 @@ struct HomeView: View {
         }
     }
 }
+
+#Preview("Idle") {
+    NavigationStack {
+        HomeView(viewModel: PreviewData.makeIdleViewModel())
+    }
+    .modelContainer(.preview)
+}
+
+#Preview("Running") {
+    NavigationStack {
+        HomeView(viewModel: PreviewData.makeRunningViewModel())
+    }
+    .modelContainer(.preview)
+}
+
+#Preview("Completed") {
+    NavigationStack {
+        HomeView(viewModel: PreviewData.makeCompletedViewModel())
+    }
+    .modelContainer(.preview)
+}

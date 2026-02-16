@@ -61,3 +61,9 @@ struct ResultsView: View {
         }
     }
 }
+
+#Preview {
+    NavigationStack {
+        ResultsView(viewModel: PreviewData.makeCompletedViewModel())
+    }
+}

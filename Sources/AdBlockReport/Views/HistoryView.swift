@@ -54,3 +54,10 @@ struct HistoryView: View {
         else { .red }
     }
 }
+
+#Preview {
+    NavigationStack {
+        HistoryView()
+    }
+    .modelContainer(.preview)
+}
