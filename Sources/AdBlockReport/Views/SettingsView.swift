@@ -2,6 +2,8 @@ import SwiftUI
 
 struct SettingsView: View {
     @Bindable var viewModel: TestViewModel
+    @Environment(\.modelContext) private var modelContext
+    @State private var showClearConfirmation = false
 
     var body: some View {
         Form {
@@ -36,8 +38,30 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
+            Section("Data Management") {
+                Button("Clear All History", role: .destructive) {
+                    showClearConfirmation = true
+                }
+                .confirmationDialog(
+                    "Clear All History?",
+                    isPresented: $showClearConfirmation,
+                    titleVisibility: .visible
+                ) {
+                    Button("Delete All Reports", role: .destructive) {
+                        do {
+                            try modelContext.delete(model: TestReport.self)
+                            try modelContext.save()
+                        } catch {
+                            // Silent failure — data deletion is best-effort
+                        }
+                    }
+                } message: {
+                    Text("This will permanently delete all saved test reports. This action cannot be undone.")
+                }
+            }
+
             Section("About") {
-                LabeledContent("Version", value: "1.0.0")
+                LabeledContent("Version", value: AppVersion.current)
                 LabeledContent("Total Domains", value: "\(DomainRegistry.allDomains.count)")
 
                 NavigationLink("About This App") {

@@ -8,18 +8,22 @@ actor AdBlockTestService {
         let latestResult: TestResult
     }
 
-    private let session: URLSession
+    private let session: URLSessionProtocol
     private let maxConcurrency = 8
 
-    init() {
-        let config = URLSessionConfiguration.ephemeral
-        config.timeoutIntervalForRequest = 6
-        config.timeoutIntervalForResource = 10
-        config.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-        config.httpShouldSetCookies = false
-        config.httpCookieAcceptPolicy = .never
-        config.urlCache = nil
-        self.session = URLSession(configuration: config)
+    init(session: URLSessionProtocol? = nil) {
+        if let session {
+            self.session = session
+        } else {
+            let config = URLSessionConfiguration.ephemeral
+            config.timeoutIntervalForRequest = 6
+            config.timeoutIntervalForResource = 10
+            config.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+            config.httpShouldSetCookies = false
+            config.httpCookieAcceptPolicy = .never
+            config.urlCache = nil
+            self.session = URLSession(configuration: config)
+        }
     }
 
     func runTests(

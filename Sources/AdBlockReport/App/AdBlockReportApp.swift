@@ -5,7 +5,7 @@ import SwiftData
 struct AdBlockReportApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            LaunchView()
         }
         .modelContainer(for: TestReport.self)
     }

@@ -41,24 +41,34 @@ final class TestViewModel {
 
     // MARK: - Private
 
-    private let testService = AdBlockTestService()
+    private let testService: any AdBlockTestServiceProtocol
     private var testTask: Task<Void, Never>?
     private var timerTask: Task<Void, Never>?
-    private let networkMonitor = NWPathMonitor()
+    private let networkMonitor: NWPathMonitor?
 
     // MARK: - Lifecycle
 
-    init() {
-        networkMonitor.pathUpdateHandler = { [weak self] path in
-            Task { @MainActor [weak self] in
-                self?.networkUnavailable = path.status != .satisfied
+    init(
+        testService: (any AdBlockTestServiceProtocol)? = nil,
+        useNetworkMonitor: Bool = true
+    ) {
+        self.testService = testService ?? AdBlockTestService()
+        if useNetworkMonitor {
+            let monitor = NWPathMonitor()
+            self.networkMonitor = monitor
+            monitor.pathUpdateHandler = { [weak self] path in
+                Task { @MainActor [weak self] in
+                    self?.networkUnavailable = path.status != .satisfied
+                }
             }
+            monitor.start(queue: DispatchQueue(label: "com.adblock-report.network-monitor"))
+        } else {
+            self.networkMonitor = nil
         }
-        networkMonitor.start(queue: DispatchQueue(label: "com.adblock-report.network-monitor"))
     }
 
     deinit {
-        networkMonitor.cancel()
+        networkMonitor?.cancel()
     }
 
     // MARK: - Computed

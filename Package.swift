@@ -11,7 +11,10 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "AdBlockReport",
-            path: "Sources/AdBlockReport"
+            path: "Sources/AdBlockReport",
+            resources: [
+                .process("Resources"),
+            ]
         ),
         .testTarget(
             name: "AdBlockReportTests",
