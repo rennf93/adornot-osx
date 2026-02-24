@@ -4,6 +4,11 @@ struct ResultsView: View {
     @Bindable var viewModel: TestViewModel
     @State private var showShareSheet = false
     @State private var appeared = false
+    @State private var availableWidth: CGFloat = 600
+
+    private var gaugeSize: CGFloat {
+        min(220, max(80, availableWidth * 0.35))
+    }
 
     var body: some View {
         ZStack {
@@ -45,6 +50,11 @@ struct ResultsView: View {
                 .padding(.horizontal, Theme.spacingLG)
                 .frame(maxWidth: 640)
                 .frame(maxWidth: .infinity)
+                .onGeometryChange(for: CGFloat.self) { proxy in
+                    proxy.size.width
+                } action: { newWidth in
+                    availableWidth = newWidth
+                }
             }
         }
         .sheet(isPresented: $showShareSheet) {
@@ -63,7 +73,7 @@ struct ResultsView: View {
 
     private var scoreHero: some View {
         VStack(spacing: Theme.spacingMD) {
-            ScoreGaugeView(score: viewModel.overallScore, animateOnAppear: true)
+            ScoreGaugeView(score: viewModel.overallScore, animateOnAppear: true, size: gaugeSize)
 
             VStack(spacing: Theme.spacingXS) {
                 Text(ScoreThreshold.label(for: viewModel.overallScore))

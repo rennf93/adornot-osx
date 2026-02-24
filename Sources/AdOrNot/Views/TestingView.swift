@@ -3,6 +3,11 @@ import SwiftUI
 struct TestingView: View {
     @Bindable var viewModel: TestViewModel
     @State private var pulseScale: CGFloat = 1.0
+    @State private var availableWidth: CGFloat = 600
+
+    private var ringSize: CGFloat {
+        min(200, max(100, availableWidth * 0.35))
+    }
 
     var body: some View {
         ZStack {
@@ -36,17 +41,24 @@ struct TestingView: View {
                 .padding(.bottom, Theme.spacingXL)
             }
             .padding(.horizontal, Theme.spacingXL)
+            .onGeometryChange(for: CGFloat.self) { proxy in
+                proxy.size.width
+            } action: { newWidth in
+                availableWidth = newWidth
+            }
         }
     }
 
     // MARK: - Progress Ring
 
     private var progressRing: some View {
-        ZStack {
+        let strokeWidth = max(8, ringSize * 0.07)
+
+        return ZStack {
             // Outer glow
             Circle()
                 .fill(Theme.brandBlue.opacity(0.08))
-                .frame(width: 240, height: 240)
+                .frame(width: ringSize * 1.2, height: ringSize * 1.2)
                 .blur(radius: 20)
                 .scaleEffect(pulseScale)
                 .onAppear {
@@ -57,8 +69,8 @@ struct TestingView: View {
 
             // Background track
             Circle()
-                .stroke(Color.white.opacity(0.08), lineWidth: 14)
-                .frame(width: 200, height: 200)
+                .stroke(Color.white.opacity(0.08), lineWidth: strokeWidth)
+                .frame(width: ringSize, height: ringSize)
 
             // Progress arc
             Circle()
@@ -70,9 +82,9 @@ struct TestingView: View {
                         startAngle: .degrees(0),
                         endAngle: .degrees(360)
                     ),
-                    style: StrokeStyle(lineWidth: 14, lineCap: .round)
+                    style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round)
                 )
-                .frame(width: 200, height: 200)
+                .frame(width: ringSize, height: ringSize)
                 .rotationEffect(.degrees(-90))
                 .animation(.easeInOut(duration: 0.3), value: viewModel.progress)
                 .shadow(color: Theme.brandBlue.opacity(0.4), radius: 8)
@@ -80,12 +92,12 @@ struct TestingView: View {
             // Center content
             VStack(spacing: Theme.spacingXS) {
                 Text("\(Int(viewModel.progress * 100))%")
-                    .font(.system(size: 44, weight: .bold, design: .rounded))
+                    .font(.system(size: ringSize * 0.22, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                     .contentTransition(.numericText())
 
                 Text("\(viewModel.completedCount)/\(viewModel.totalCount)")
-                    .font(.subheadline.monospacedDigit())
+                    .font(.system(size: max(11, ringSize * 0.07)))
                     .foregroundStyle(.white.opacity(0.5))
             }
         }

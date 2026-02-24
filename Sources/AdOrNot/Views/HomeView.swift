@@ -4,6 +4,19 @@ import SwiftData
 struct HomeView: View {
     @Bindable var viewModel: TestViewModel
     @Environment(\.modelContext) private var modelContext
+    @State private var availableWidth: CGFloat = 600
+
+    private var heroCircleSize: CGFloat {
+        min(140, max(60, availableWidth * 0.22))
+    }
+
+    private var heroIconSize: CGFloat {
+        heroCircleSize * 0.46
+    }
+
+    private var heroTitleSize: CGFloat {
+        min(28, max(18, availableWidth * 0.045))
+    }
 
     var body: some View {
         Group {
@@ -46,6 +59,11 @@ struct HomeView: View {
                 .padding(.horizontal, Theme.spacingXL)
                 .frame(maxWidth: 600)
                 .frame(maxWidth: .infinity)
+                .onGeometryChange(for: CGFloat.self) { proxy in
+                    proxy.size.width
+                } action: { newWidth in
+                    availableWidth = newWidth
+                }
             }
         }
     }
@@ -57,11 +75,11 @@ struct HomeView: View {
             ZStack {
                 Circle()
                     .fill(Theme.brandBlue.opacity(0.15))
-                    .frame(width: 140, height: 140)
+                    .frame(width: heroCircleSize, height: heroCircleSize)
                     .blur(radius: 20)
 
                 Image(systemName: "shield.checkered")
-                    .font(.system(size: 64, weight: .medium))
+                    .font(.system(size: heroIconSize, weight: .medium))
                     .foregroundStyle(
                         LinearGradient(
                             colors: [Theme.brandBlueLight, Theme.brandCyan],
@@ -74,7 +92,7 @@ struct HomeView: View {
 
             VStack(spacing: Theme.spacingSM) {
                 Text("Test Your Ad Blocker")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .font(.system(size: heroTitleSize, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
 
                 Text("Check if your DNS filter or ad blocker is effectively blocking known advertising, analytics, and tracking domains.")

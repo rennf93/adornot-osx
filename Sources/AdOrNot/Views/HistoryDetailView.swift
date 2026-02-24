@@ -4,6 +4,11 @@ struct HistoryDetailView: View {
     let report: TestReport
     @State private var showShareSheet = false
     @State private var appeared = false
+    @State private var availableWidth: CGFloat = 600
+
+    private var gaugeSize: CGFloat {
+        min(220, max(80, availableWidth * 0.35))
+    }
 
     var body: some View {
         ZStack {
@@ -12,7 +17,7 @@ struct HistoryDetailView: View {
             ScrollView {
                 VStack(spacing: Theme.spacingLG) {
                     // Hero score
-                    ScoreGaugeView(score: report.overallScore, animateOnAppear: false)
+                    ScoreGaugeView(score: report.overallScore, animateOnAppear: false, size: gaugeSize)
                         .padding(.top, Theme.spacingMD)
 
                     // Device info card
@@ -43,6 +48,11 @@ struct HistoryDetailView: View {
                 .frame(maxWidth: 640)
                 .frame(maxWidth: .infinity)
                 .padding(.bottom, Theme.spacingLG)
+                .onGeometryChange(for: CGFloat.self) { proxy in
+                    proxy.size.width
+                } action: { newWidth in
+                    availableWidth = newWidth
+                }
             }
         }
         .navigationTitle("Test Details")

@@ -6,9 +6,9 @@ enum ScoreThreshold {
     static let moderate: Double = 30
 
     static func color(for score: Double) -> Color {
-        if score >= good { .green }
-        else if score >= moderate { .orange }
-        else { .red }
+        if score >= good { Theme.scoreGood }
+        else if score >= moderate { Theme.scoreModerate }
+        else { Theme.scoreWeak }
     }
 
     static func label(for score: Double) -> String {
