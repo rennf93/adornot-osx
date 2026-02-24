@@ -22,11 +22,13 @@ final class TestReport {
     ) {
         self.id = UUID()
         self.date = Date()
-        self.totalDomains = results.count
-        self.blockedDomains = results.filter(\.isBlocked).count
+        let total = results.count
+        let blocked = results.filter(\.isBlocked).count
+        self.totalDomains = total
+        self.blockedDomains = blocked
         self.overallScore = results.isEmpty
             ? 0
-            : (Double(self.blockedDomains) / Double(self.totalDomains)) * 100.0
+            : (Double(blocked) / Double(total)) * 100.0
 
         var scores: [String: Double] = [:]
         let grouped = Dictionary(grouping: results, by: { $0.domain.category })
