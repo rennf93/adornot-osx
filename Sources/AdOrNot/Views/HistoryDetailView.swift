@@ -10,6 +10,14 @@ struct HistoryDetailView: View {
         min(220, max(80, availableWidth * 0.35))
     }
 
+    private var categoryColumnCount: Int {
+        Theme.responsiveColumnCount(
+            availableWidth: availableWidth,
+            minColumns: 3,
+            idealItemWidth: 200
+        )
+    }
+
     var body: some View {
         ZStack {
             AnimatedMeshBackground()
@@ -34,18 +42,23 @@ struct HistoryDetailView: View {
 
                         let results = report.results
                         let grouped = Dictionary(grouping: results, by: { $0.domain.category })
-                        ForEach(Array(TestCategory.allCases.enumerated()), id: \.element) { index, category in
-                            if let catResults = grouped[category], !catResults.isEmpty {
-                                CategoryResultView(category: category, results: catResults)
-                                    .opacity(appeared ? 1 : 0)
-                                    .offset(y: appeared ? 0 : 20)
-                                    .animation(.easeOut(duration: 0.4).delay(Double(index) * 0.06), value: appeared)
+                        LazyVGrid(
+                            columns: Theme.flexibleColumns(count: categoryColumnCount),
+                            spacing: Theme.spacingMD
+                        ) {
+                            ForEach(Array(TestCategory.allCases.enumerated()), id: \.element) { index, category in
+                                if let catResults = grouped[category], !catResults.isEmpty {
+                                    CategoryResultView(category: category, results: catResults, isCompact: true)
+                                        .opacity(appeared ? 1 : 0)
+                                        .offset(y: appeared ? 0 : 20)
+                                        .animation(.easeOut(duration: 0.4).delay(Double(index) * 0.06), value: appeared)
+                                }
                             }
                         }
                     }
                 }
                 .padding(.horizontal, Theme.spacingLG)
-                .frame(maxWidth: 640)
+                .frame(maxWidth: 1200)
                 .frame(maxWidth: .infinity)
                 .padding(.bottom, Theme.spacingLG)
                 .onGeometryChange(for: CGFloat.self) { proxy in

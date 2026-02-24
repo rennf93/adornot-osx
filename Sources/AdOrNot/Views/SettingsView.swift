@@ -5,6 +5,15 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showClearConfirmation = false
     @State private var showAbout = false
+    @State private var availableWidth: CGFloat = 500
+
+    private var categoryColumnCount: Int {
+        Theme.responsiveColumnCount(
+            availableWidth: availableWidth,
+            minColumns: 2,
+            idealItemWidth: 240
+        )
+    }
 
     var body: some View {
         ZStack {
@@ -19,8 +28,13 @@ struct SettingsView: View {
                 }
                 .padding(.horizontal, Theme.spacingLG)
                 .padding(.vertical, Theme.spacingMD)
-                .frame(maxWidth: 600)
+                .frame(maxWidth: 900)
                 .frame(maxWidth: .infinity)
+                .onGeometryChange(for: CGFloat.self) { proxy in
+                    proxy.size.width
+                } action: { newWidth in
+                    availableWidth = newWidth
+                }
             }
         }
         .navigationTitle("Settings")
@@ -35,17 +49,14 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: Theme.spacingMD) {
             sectionHeader(title: "Test Categories", icon: "shield.checkered")
 
-            VStack(spacing: 0) {
-                ForEach(Array(TestCategory.allCases.enumerated()), id: \.element) { index, category in
-                    categoryToggleRow(category: category)
-
-                    if index < TestCategory.allCases.count - 1 {
-                        Divider()
-                            .overlay(Color.white.opacity(0.06))
-                    }
+            LazyVGrid(
+                columns: Theme.flexibleColumns(count: categoryColumnCount),
+                spacing: Theme.spacingMD
+            ) {
+                ForEach(TestCategory.allCases) { category in
+                    categoryCard(category: category)
                 }
             }
-            .glassCard(padding: 0)
 
             HStack {
                 Image(systemName: "globe")
@@ -59,41 +70,59 @@ struct SettingsView: View {
         }
     }
 
-    private func categoryToggleRow(category: TestCategory) -> some View {
-        Toggle(isOn: Binding(
-            get: { viewModel.selectedCategories.contains(category) },
-            set: { isOn in
-                if isOn {
-                    viewModel.selectedCategories.insert(category)
-                } else if viewModel.selectedCategories.count > 1 {
+    private func categoryCard(category: TestCategory) -> some View {
+        let isSelected = viewModel.selectedCategories.contains(category)
+
+        return Button {
+            if isSelected {
+                if viewModel.selectedCategories.count > 1 {
                     viewModel.selectedCategories.remove(category)
                 }
+            } else {
+                viewModel.selectedCategories.insert(category)
             }
-        )) {
-            HStack(spacing: Theme.spacingSM) {
+        } label: {
+            VStack(spacing: Theme.spacingSM) {
                 ZStack {
                     RoundedRectangle(cornerRadius: Theme.radiusSM)
-                        .fill(Theme.brandBlue.opacity(0.15))
-                        .frame(width: 32, height: 32)
+                        .fill(Theme.brandBlue.opacity(isSelected ? 0.25 : 0.10))
+                        .frame(width: 40, height: 40)
 
                     Image(systemName: category.systemImage)
-                        .font(.system(size: 14))
-                        .foregroundStyle(Theme.brandBlueLight)
+                        .font(.system(size: 18))
+                        .foregroundStyle(isSelected ? Theme.brandBlueLight : .white.opacity(0.4))
                 }
 
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(category.rawValue)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.white)
-                    Text("\(DomainRegistry.domains(for: category).count) domains")
-                        .font(.caption2)
-                        .foregroundStyle(.white.opacity(0.4))
+                Text(category.rawValue)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(isSelected ? .white : .white.opacity(0.5))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+
+                Text("\(DomainRegistry.domains(for: category).count) domains")
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.4))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, Theme.spacingMD)
+            .overlay(alignment: .topTrailing) {
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(Theme.brandBlueLight)
+                        .padding(Theme.spacingSM)
                 }
             }
         }
-        .tint(Theme.brandBlue)
-        .padding(.horizontal, Theme.spacingMD)
-        .padding(.vertical, Theme.spacingSM)
+        .buttonStyle(.plain)
+        .glassCard(padding: 0)
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.radiusLG)
+                .strokeBorder(
+                    isSelected ? Theme.brandBlue.opacity(0.4) : Color.clear,
+                    lineWidth: 1.5
+                )
+        )
     }
 
     // MARK: - Configuration Section

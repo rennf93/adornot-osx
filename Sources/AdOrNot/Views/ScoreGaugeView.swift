@@ -12,6 +12,10 @@ struct ScoreGaugeView: View {
         ScoreThreshold.color(for: score)
     }
 
+    private var totalSize: CGFloat {
+        showGlow ? size * 1.4 : size
+    }
+
     var body: some View {
         ZStack {
             // Glow effect
@@ -54,7 +58,7 @@ struct ScoreGaugeView: View {
                     .foregroundStyle(.white.opacity(0.5))
             }
         }
-        .frame(width: size, height: size)
+        .frame(width: totalSize, height: totalSize)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(Int(score))% blocked")
         .accessibilityValue(ScoreThreshold.label(for: score))

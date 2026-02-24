@@ -121,6 +121,7 @@ struct ContentView: View {
         NavigationStack {
             tabContent(for: selectedTab)
         }
+        .id(selectedTab)
     }
 
     @ViewBuilder

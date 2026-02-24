@@ -119,6 +119,26 @@ enum Theme {
         else if score >= ScoreThreshold.moderate { return scoreModerate.opacity(0.4) }
         else { return scoreWeak.opacity(0.4) }
     }
+
+    // MARK: - Responsive Grid
+
+    /// Calculates the number of grid columns based on available width.
+    static func responsiveColumnCount(
+        availableWidth: CGFloat,
+        minColumns: Int,
+        idealItemWidth: CGFloat
+    ) -> Int {
+        let count = Int(availableWidth / idealItemWidth)
+        return max(minColumns, count)
+    }
+
+    /// Creates an array of flexible GridItems for use with LazyVGrid.
+    static func flexibleColumns(
+        count: Int,
+        spacing: CGFloat = spacingMD
+    ) -> [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: spacing), count: count)
+    }
 }
 
 // MARK: - Glass Card Modifier

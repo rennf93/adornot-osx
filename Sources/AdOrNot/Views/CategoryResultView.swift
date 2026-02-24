@@ -3,6 +3,7 @@ import SwiftUI
 struct CategoryResultView: View {
     let category: TestCategory
     let results: [TestResult]
+    var isCompact: Bool = false
 
     @State private var isExpanded = false
 
@@ -14,34 +15,87 @@ struct CategoryResultView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header (tappable)
-            Button {
-                withAnimation(.easeInOut(duration: 0.25)) {
-                    isExpanded.toggle()
-                }
-            } label: {
-                categoryHeader
-            }
-            .buttonStyle(.plain)
-
-            // Expandable content
-            if isExpanded {
-                VStack(spacing: 0) {
-                    Divider()
-                        .overlay(Color.white.opacity(0.06))
-
-                    LazyVStack(spacing: 0) {
-                        ForEach(results.sorted(by: { $0.domain.provider < $1.domain.provider })) { result in
-                            DomainResultRow(result: result)
-                        }
+            if isCompact {
+                compactHeader
+            } else {
+                // Header (tappable)
+                Button {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        isExpanded.toggle()
                     }
-                    .padding(.vertical, Theme.spacingSM)
+                } label: {
+                    categoryHeader
                 }
-                .transition(.opacity.combined(with: .move(edge: .top)))
+                .buttonStyle(.plain)
+
+                // Expandable content
+                if isExpanded {
+                    VStack(spacing: 0) {
+                        Divider()
+                            .overlay(Color.white.opacity(0.06))
+
+                        LazyVStack(spacing: 0) {
+                            ForEach(results.sorted(by: { $0.domain.provider < $1.domain.provider })) { result in
+                                DomainResultRow(result: result)
+                            }
+                        }
+                        .padding(.vertical, Theme.spacingSM)
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
             }
         }
         .glassCard(padding: 0)
     }
+
+    // MARK: - Compact Header (for grid layout)
+
+    private var compactHeader: some View {
+        VStack(spacing: Theme.spacingSM) {
+            ZStack {
+                RoundedRectangle(cornerRadius: Theme.radiusSM)
+                    .fill(Theme.brandBlue.opacity(0.15))
+                    .frame(width: 36, height: 36)
+
+                Image(systemName: category.systemImage)
+                    .font(.system(size: 16))
+                    .foregroundStyle(Theme.brandBlueLight)
+            }
+
+            Text(category.rawValue)
+                .font(.headline)
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+
+            Text("\(Int(score))%")
+                .font(.title3.bold().monospacedDigit())
+                .foregroundStyle(ScoreThreshold.color(for: score))
+
+            Text("\(blockedCount)/\(results.count) blocked")
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.5))
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(Color.white.opacity(0.08))
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(ScoreThreshold.color(for: score))
+                        .frame(width: geo.size.width * (score / 100))
+                }
+            }
+            .frame(height: 4)
+            .padding(.horizontal, Theme.spacingSM)
+        }
+        .padding(Theme.spacingMD)
+        .frame(maxWidth: .infinity)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(category.rawValue), \(blockedCount) of \(results.count) blocked, \(Int(score))%")
+    }
+
+    // MARK: - Expandable Header (for list layout)
 
     private var categoryHeader: some View {
         HStack(spacing: Theme.spacingSM) {

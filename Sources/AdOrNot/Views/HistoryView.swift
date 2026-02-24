@@ -6,6 +6,15 @@ struct HistoryView: View {
     private var reports: [TestReport]
 
     @Environment(\.modelContext) private var modelContext
+    @State private var availableWidth: CGFloat = 600
+
+    private var historyColumnCount: Int {
+        Theme.responsiveColumnCount(
+            availableWidth: availableWidth,
+            minColumns: 3,
+            idealItemWidth: 200
+        )
+    }
 
     var body: some View {
         ZStack {
@@ -15,7 +24,10 @@ struct HistoryView: View {
                 emptyState
             } else {
                 ScrollView {
-                    LazyVStack(spacing: Theme.spacingMD) {
+                    LazyVGrid(
+                        columns: Theme.flexibleColumns(count: historyColumnCount),
+                        spacing: Theme.spacingMD
+                    ) {
                         ForEach(reports) { report in
                             NavigationLink(destination: HistoryDetailView(report: report)) {
                                 reportCard(report)
@@ -34,8 +46,13 @@ struct HistoryView: View {
                     }
                     .padding(.horizontal, Theme.spacingLG)
                     .padding(.vertical, Theme.spacingMD)
-                    .frame(maxWidth: 640)
+                    .frame(maxWidth: 1200)
                     .frame(maxWidth: .infinity)
+                    .onGeometryChange(for: CGFloat.self) { proxy in
+                        proxy.size.width
+                    } action: { newWidth in
+                        availableWidth = newWidth
+                    }
                 }
             }
         }
@@ -72,7 +89,7 @@ struct HistoryView: View {
     // MARK: - Report Card
 
     private func reportCard(_ report: TestReport) -> some View {
-        HStack(spacing: Theme.spacingMD) {
+        VStack(spacing: Theme.spacingSM) {
             ScoreGaugeView(
                 score: report.overallScore,
                 animateOnAppear: false,
@@ -80,27 +97,22 @@ struct HistoryView: View {
                 showGlow: false
             )
 
-            VStack(alignment: .leading, spacing: Theme.spacingXS) {
-                Text(report.date.formatted(date: .abbreviated, time: .shortened))
-                    .font(.headline)
-                    .foregroundStyle(.white)
-
-                Text("\(report.blockedDomains)/\(report.totalDomains) blocked")
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.5))
-            }
-
-            Spacer()
-
             Text("\(Int(report.overallScore))%")
                 .font(.title3.bold().monospacedDigit())
                 .foregroundStyle(ScoreThreshold.color(for: report.overallScore))
 
-            Image(systemName: "chevron.right")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.3))
+            Text(report.date.formatted(date: .abbreviated, time: .shortened))
+                .font(.caption)
+                .foregroundStyle(.white)
+                .lineLimit(1)
+
+            Text("\(report.blockedDomains)/\(report.totalDomains) blocked")
+                .font(.caption2)
+                .foregroundStyle(.white.opacity(0.5))
         }
-        .glassCard(padding: Theme.spacingMD)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, Theme.spacingMD)
+        .glassCard(padding: Theme.spacingSM)
     }
 }
 
