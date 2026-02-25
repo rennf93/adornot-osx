@@ -109,6 +109,13 @@ struct HistoryView: View {
             Text("\(report.blockedDomains)/\(report.totalDomains) blocked")
                 .font(.caption2)
                 .foregroundStyle(.white.opacity(0.5))
+
+            HStack(spacing: 2) {
+                Image(systemName: report.testModeEnum.systemImage)
+                Text(report.testModeEnum.label)
+            }
+            .font(.caption2)
+            .foregroundStyle(.white.opacity(0.35))
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, Theme.spacingMD)

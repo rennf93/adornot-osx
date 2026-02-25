@@ -69,3 +69,23 @@ import Foundation
     let report = TestReport(results: results, duration: 1.0, deviceName: "T", osVersion: "iOS 26.0")
     #expect(report.overallScore == 0.0)
 }
+
+@Test func testReportDefaultTestMode() {
+    let report = TestReport(results: [], duration: 0, deviceName: "T", osVersion: "iOS 26.0")
+    #expect(report.testMode == "Standard")
+    #expect(report.testModeEnum == .standard)
+}
+
+@Test func testReportPiholeTestMode() {
+    let report = TestReport(results: [], duration: 0, deviceName: "T", osVersion: "iOS 26.0", testMode: .pihole)
+    #expect(report.testMode == "Pi-hole")
+    #expect(report.testModeEnum == .pihole)
+}
+
+@Test func testReportTestModeRoundTrip() {
+    let domain = TestDomain(hostname: "test.com", provider: "P", category: .ads)
+    let results = [TestResult(domain: domain, isBlocked: true)]
+    let report = TestReport(results: results, duration: 1.0, deviceName: "Dev", osVersion: "macOS 26.0", testMode: .pihole)
+    #expect(report.testModeEnum == .pihole)
+    #expect(report.testMode == "Pi-hole")
+}

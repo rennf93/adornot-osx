@@ -13,12 +13,18 @@ final class TestReport {
     var durationSeconds: Double
     var deviceName: String
     var osVersion: String
+    var testMode: String = "Standard"
+
+    var testModeEnum: TestMode {
+        TestMode(rawValue: testMode) ?? .standard
+    }
 
     init(
         results: [TestResult],
         duration: Double,
         deviceName: String,
-        osVersion: String
+        osVersion: String,
+        testMode: TestMode = .standard
     ) {
         self.id = UUID()
         self.date = Date()
@@ -42,6 +48,7 @@ final class TestReport {
         self.durationSeconds = duration
         self.deviceName = deviceName
         self.osVersion = osVersion
+        self.testMode = testMode.rawValue
     }
 
     var results: [TestResult] {

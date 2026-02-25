@@ -6,12 +6,14 @@ struct ContentView: View {
 
     enum AppTab: String, CaseIterable {
         case test = "Test"
+        case domains = "Domains"
         case history = "History"
         case settings = "Settings"
 
         var icon: String {
             switch self {
-            case .test: "shield.checkered"
+            case .test: "eye"
+            case .domains: "list.bullet.rectangle"
             case .history: "clock.arrow.circlepath"
             case .settings: "gear"
             }
@@ -50,15 +52,11 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 // Brand header
                 VStack(spacing: Theme.spacingSM) {
-                    Image(systemName: "shield.checkered")
-                        .font(.system(size: 28, weight: .medium))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [Theme.brandBlueLight, Theme.brandCyan],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
+                    Image("AppLogo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 32, height: 32)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
                     Text("AdOrNot")
                         .font(.system(size: 14, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
@@ -129,6 +127,8 @@ struct ContentView: View {
         switch tab {
         case .test:
             HomeView(viewModel: viewModel)
+        case .domains:
+            DomainsView()
         case .history:
             HistoryView()
         case .settings:

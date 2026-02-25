@@ -5,6 +5,7 @@ struct ResultsView: View {
     @State private var showShareSheet = false
     @State private var appeared = false
     @State private var availableWidth: CGFloat = 600
+    @State private var blocklistExpanded = false
 
     private var gaugeSize: CGFloat {
         min(220, max(80, availableWidth * 0.35))
@@ -24,9 +25,14 @@ struct ResultsView: View {
 
             ScrollView {
                 VStack(spacing: Theme.spacingLG) {
+                    // Pi-hole error banner
+                    if let error = viewModel.piholeError {
+                        piholeErrorBanner(error)
+                    }
+
                     // Hero score
                     scoreHero
-                        .padding(.top, Theme.spacingLG)
+                        .padding(.top, viewModel.piholeError == nil ? Theme.spacingLG : 0)
 
                     // Summary stats
                     summaryStats
@@ -55,6 +61,11 @@ struct ResultsView: View {
                                 .animation(.easeOut(duration: 0.4).delay(Double(index) * 0.08), value: appeared)
                             }
                         }
+                    }
+
+                    // Per-blocklist breakdown (Pi-hole mode only)
+                    if viewModel.testMode == .pihole {
+                        blocklistBreakdown
                     }
 
                     // Action buttons
@@ -97,6 +108,80 @@ struct ResultsView: View {
                 Text("\(viewModel.results.filter(\.isBlocked).count) of \(viewModel.results.count) domains blocked")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.5))
+
+                HStack(spacing: 4) {
+                    Image(systemName: viewModel.testMode.systemImage)
+                    Text(viewModel.testMode == .pihole ? "Pi-hole blocklist domains" : "Standard test")
+                }
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.4))
+            }
+        }
+    }
+
+    // MARK: - Blocklist Breakdown
+
+    private var blocklistBreakdown: some View {
+        let piholeResults = viewModel.results.filter { $0.domain.category == .piholeBlocklists }
+        let byList = Dictionary(grouping: piholeResults, by: { $0.domain.provider })
+        let sorted = byList.sorted { a, b in
+            let aScore = Double(a.value.filter(\.isBlocked).count) / Double(a.value.count)
+            let bScore = Double(b.value.filter(\.isBlocked).count) / Double(b.value.count)
+            return aScore > bScore
+        }
+
+        return VStack(spacing: Theme.spacingMD) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    blocklistExpanded.toggle()
+                }
+            } label: {
+                HStack {
+                    Text("Blocklist Breakdown")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                    Spacer()
+                    Text("\(byList.count) lists")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.5))
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.4))
+                        .rotationEffect(.degrees(blocklistExpanded ? 90 : 0))
+                }
+            }
+            .buttonStyle(.plain)
+
+            if blocklistExpanded {
+                ForEach(Array(sorted.enumerated()), id: \.element.key) { index, item in
+                    let blocked = item.value.filter(\.isBlocked).count
+                    let total = item.value.count
+                    let score = total > 0 ? Double(blocked) / Double(total) * 100 : 0
+
+                    HStack(spacing: Theme.spacingSM) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(item.key)
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(.white)
+                                .lineLimit(1)
+                            Text("\(blocked)/\(total) blocked")
+                                .font(.caption)
+                                .foregroundStyle(.white.opacity(0.5))
+                        }
+
+                        Spacer()
+
+                        Text("\(Int(score))%")
+                            .font(.subheadline.weight(.semibold).monospacedDigit())
+                            .foregroundStyle(ScoreThreshold.color(for: score))
+                    }
+                    .padding(Theme.spacingSM)
+                    .background {
+                        RoundedRectangle(cornerRadius: Theme.radiusSM)
+                            .fill(.white.opacity(0.05))
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
             }
         }
     }
@@ -121,6 +206,34 @@ struct ResultsView: View {
                 icon: "folder.fill"
             )
         }
+    }
+
+    // MARK: - Pi-hole Error Banner
+
+    private func piholeErrorBanner(_ error: String) -> some View {
+        HStack(spacing: Theme.spacingSM) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.body)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Pi-hole Connection Error")
+                    .font(.subheadline.weight(.semibold))
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.7))
+            }
+            Spacer()
+        }
+        .foregroundStyle(.white)
+        .padding(Theme.spacingMD)
+        .background {
+            RoundedRectangle(cornerRadius: Theme.radiusMD)
+                .fill(Theme.scoreWeak.opacity(0.3))
+                .overlay(
+                    RoundedRectangle(cornerRadius: Theme.radiusMD)
+                        .strokeBorder(Theme.scoreWeak.opacity(0.5), lineWidth: 1)
+                )
+        }
+        .padding(.top, Theme.spacingMD)
     }
 
     // MARK: - Action Buttons

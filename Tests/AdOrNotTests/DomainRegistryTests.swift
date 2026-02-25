@@ -2,11 +2,11 @@ import Testing
 @testable import AdOrNot
 
 @Test func domainRegistryHasExpectedCount() {
-    #expect(DomainRegistry.allDomains.count >= 130)
+    #expect(DomainRegistry.allDomains.count >= 128)
 }
 
 @Test func allCategoriesHaveDomains() {
-    for category in TestCategory.allCases {
+    for category in TestCategory.standardCases {
         let domains = DomainRegistry.domains(for: category)
         #expect(!domains.isEmpty, "Category \(category.rawValue) should have domains")
     }

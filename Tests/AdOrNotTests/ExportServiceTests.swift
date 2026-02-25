@@ -12,7 +12,8 @@ import Foundation
 @Test func exportTextReportContainsScore() {
     let report = makeTestReport()
     let text = ExportService.generateTextReport(report)
-    #expect(text.contains("\(Int(report.overallScore))%"))
+    let formattedScore = String(format: "%.0f", report.overallScore)
+    #expect(text.contains("\(formattedScore)%"))
 }
 
 @Test func exportTextReportContainsDeviceInfo() {

@@ -11,9 +11,9 @@ import SwiftData
     #expect(vm.overallScore == 0)
 }
 
-@Test @MainActor func viewModelSelectedCategoriesDefaultToAll() {
+@Test @MainActor func viewModelSelectedCategoriesDefaultToStandard() {
     let vm = TestViewModel(testService: nil, useNetworkMonitor: false)
-    #expect(vm.selectedCategories == Set(TestCategory.allCases))
+    #expect(vm.selectedCategories == Set(TestCategory.standardCases))
 }
 
 @Test @MainActor func viewModelDomainsToTestReflectsSelectedCategories() {
@@ -70,6 +70,31 @@ import SwiftData
     let context = ModelContext(container)
 
     vm.startTest(modelContext: context)
+    #expect(vm.state == .idle)
+}
+
+@Test @MainActor func viewModelDefaultTestModeIsStandard() {
+    let vm = TestViewModel(testService: nil, useNetworkMonitor: false)
+    #expect(vm.testMode == .standard)
+}
+
+@Test @MainActor func viewModelPiholeNotConfiguredByDefault() {
+    let vm = TestViewModel(testService: nil, useNetworkMonitor: false)
+    #expect(vm.isPiholeConfigured == false)
+}
+
+@Test @MainActor func viewModelPiholeBlockedByNoNetwork() throws {
+    let mock = MockTestService()
+    let vm = TestViewModel(testService: mock, useNetworkMonitor: false)
+    vm.networkUnavailable = true
+    vm.testMode = .pihole
+
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try ModelContainer(for: TestReport.self, configurations: config)
+    let context = ModelContext(container)
+
+    vm.startTest(modelContext: context)
+    // Pi-hole mode also needs network
     #expect(vm.state == .idle)
 }
 

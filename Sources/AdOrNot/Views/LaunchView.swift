@@ -5,7 +5,7 @@ struct LaunchView: View {
     @State private var iconScale: CGFloat = 0.6
     @State private var iconOpacity: Double = 0
     @State private var textOpacity: Double = 0
-    @State private var shieldRotation: Double = -10
+    @State private var logoRotation: Double = -10
 
     var body: some View {
         if isActive {
@@ -15,18 +15,14 @@ struct LaunchView: View {
                 AnimatedMeshBackground()
 
                 VStack(spacing: Theme.spacingLG) {
-                    Image(systemName: "shield.checkered")
-                        .font(.system(size: 80, weight: .medium))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [Theme.brandBlueLight, Theme.brandCyan],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
+                    Image("AppLogo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 80, height: 80)
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
                         .scaleEffect(iconScale)
                         .opacity(iconOpacity)
-                        .rotationEffect(.degrees(shieldRotation))
+                        .rotationEffect(.degrees(logoRotation))
                         .shadow(color: Theme.brandBlue.opacity(0.5), radius: 20, y: 8)
 
                     VStack(spacing: Theme.spacingSM) {
@@ -45,7 +41,7 @@ struct LaunchView: View {
                 withAnimation(.spring(response: 0.7, dampingFraction: 0.6)) {
                     iconScale = 1.0
                     iconOpacity = 1.0
-                    shieldRotation = 0
+                    logoRotation = 0
                 }
                 withAnimation(.easeOut(duration: 0.6).delay(0.3)) {
                     textOpacity = 1.0

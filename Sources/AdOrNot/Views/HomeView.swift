@@ -46,6 +46,10 @@ struct HomeView: View {
                     heroSection
                     statsRow
 
+                    if viewModel.isPiholeConfigured {
+                        testModePicker
+                    }
+
                     Spacer(minLength: Theme.spacingMD)
 
                     if viewModel.networkUnavailable {
@@ -78,15 +82,11 @@ struct HomeView: View {
                     .frame(width: heroCircleSize, height: heroCircleSize)
                     .blur(radius: 20)
 
-                Image(systemName: "shield.checkered")
-                    .font(.system(size: heroIconSize, weight: .medium))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [Theme.brandBlueLight, Theme.brandCyan],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                Image("AppLogo")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: heroIconSize, height: heroIconSize)
+                    .clipShape(RoundedRectangle(cornerRadius: heroIconSize * 0.22))
                     .shadow(color: Theme.brandBlue.opacity(0.4), radius: 16, y: 6)
             }
 
@@ -124,6 +124,25 @@ struct HomeView: View {
                 icon: "bolt.fill"
             )
         }
+    }
+
+    // MARK: - Test Mode Picker
+
+    private var testModePicker: some View {
+        VStack(spacing: Theme.spacingSM) {
+            Picker("Test Mode", selection: $viewModel.testMode) {
+                ForEach(TestMode.allCases) { mode in
+                    Label(mode.label, systemImage: mode.systemImage).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            Text(viewModel.testMode.description)
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.5))
+                .multilineTextAlignment(.center)
+        }
+        .glassCard(padding: Theme.spacingMD)
     }
 
     // MARK: - Network Warning

@@ -113,6 +113,11 @@ struct HistoryDetailView: View {
                 label: "Duration",
                 value: String(format: "%.1fs", report.durationSeconds)
             )
+            infoItem(
+                icon: report.testModeEnum.systemImage,
+                label: "Mode",
+                value: report.testModeEnum.label
+            )
         }
         .glassCard(padding: Theme.spacingMD)
     }

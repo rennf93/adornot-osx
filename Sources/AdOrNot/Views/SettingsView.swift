@@ -6,6 +6,12 @@ struct SettingsView: View {
     @State private var showClearConfirmation = false
     @State private var showAbout = false
     @State private var availableWidth: CGFloat = 500
+    @State private var piholePassword: String = KeychainHelper.load(key: "piholePassword") ?? ""
+    @State private var piholeConnectionStatus: PiholeConnectionStatus = .idle
+
+    private enum PiholeConnectionStatus {
+        case idle, testing, success, failure
+    }
 
     private var categoryColumnCount: Int {
         Theme.responsiveColumnCount(
@@ -23,6 +29,7 @@ struct SettingsView: View {
                 VStack(spacing: Theme.spacingLG) {
                     categoriesSection
                     configurationSection
+                    piholeSection
                     dataManagementSection
                     aboutSection
                 }
@@ -47,13 +54,13 @@ struct SettingsView: View {
 
     private var categoriesSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacingMD) {
-            sectionHeader(title: "Test Categories", icon: "shield.checkered")
+            sectionHeader(title: "Test Categories", icon: "eye")
 
             LazyVGrid(
                 columns: Theme.flexibleColumns(count: categoryColumnCount),
                 spacing: Theme.spacingMD
             ) {
-                ForEach(TestCategory.allCases) { category in
+                ForEach(TestCategory.standardCases, id: \.self) { category in
                     categoryCard(category: category)
                 }
             }
@@ -181,6 +188,117 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Pi-hole Section
+
+    private var piholeSection: some View {
+        VStack(alignment: .leading, spacing: Theme.spacingMD) {
+            sectionHeader(title: "Pi-hole", icon: "shield.checkered")
+
+            VStack(spacing: 0) {
+                // Host address
+                VStack(alignment: .leading, spacing: Theme.spacingSM) {
+                    Text("Host Address")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.white)
+
+                    TextField("192.168.1.x", text: Binding(
+                        get: { viewModel.piholeHost },
+                        set: { viewModel.savePiholeHost($0) }
+                    ))
+                    .textFieldStyle(.roundedBorder)
+
+                    Text("Just the IP address (e.g. 192.168.1.100) or with port (e.g. 192.168.1.100:8080)")
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.35))
+                }
+                .padding(Theme.spacingMD)
+
+                Divider()
+                    .overlay(Color.white.opacity(0.06))
+
+                // Password
+                VStack(alignment: .leading, spacing: Theme.spacingSM) {
+                    Text("Password")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.white)
+
+                    SecureField("Pi-hole password", text: $piholePassword)
+                        .textFieldStyle(.roundedBorder)
+                        .onChange(of: piholePassword) { _, newValue in
+                            if newValue.isEmpty {
+                                KeychainHelper.delete(key: "piholePassword")
+                            } else {
+                                _ = KeychainHelper.save(key: "piholePassword", value: newValue)
+                            }
+                        }
+
+                    Text("Stored securely in Keychain")
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.35))
+                }
+                .padding(Theme.spacingMD)
+
+                Divider()
+                    .overlay(Color.white.opacity(0.06))
+
+                // Test connection button
+                HStack {
+                    Button {
+                        piholeConnectionStatus = .testing
+                        Task {
+                            let success = await viewModel.testPiholeConnection()
+                            piholeConnectionStatus = success ? .success : .failure
+                        }
+                    } label: {
+                        HStack(spacing: Theme.spacingSM) {
+                            Image(systemName: "antenna.radiowaves.left.and.right")
+                            Text("Test Connection")
+                        }
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Theme.brandBlueLight)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(viewModel.piholeHost.isEmpty || piholePassword.isEmpty)
+
+                    Spacer()
+
+                    switch piholeConnectionStatus {
+                    case .idle:
+                        EmptyView()
+                    case .testing:
+                        ProgressView()
+                            .controlSize(.small)
+                    case .success:
+                        HStack(spacing: 4) {
+                            Image(systemName: "checkmark.circle.fill")
+                            Text("Connected")
+                        }
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(Theme.scoreGood)
+                    case .failure:
+                        VStack(alignment: .trailing, spacing: 2) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "xmark.circle.fill")
+                                Text("Failed")
+                            }
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Theme.scoreWeak)
+
+                            if let error = viewModel.piholeError {
+                                Text(error)
+                                    .font(.caption2)
+                                    .foregroundStyle(.white.opacity(0.5))
+                                    .lineLimit(2)
+                            }
+                        }
+                    }
+                }
+                .padding(Theme.spacingMD)
+            }
+            .glassCard(padding: 0)
+        }
+    }
+
     // MARK: - Data Management Section
 
     private var dataManagementSection: some View {
@@ -230,21 +348,11 @@ struct SettingsView: View {
                 showAbout = true
             } label: {
                 HStack(spacing: Theme.spacingMD) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: Theme.radiusMD)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Theme.brandBlue, Theme.brandIndigo],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 48, height: 48)
-
-                        Image(systemName: "shield.checkered")
-                            .font(.system(size: 22))
-                            .foregroundStyle(.white)
-                    }
+                    Image("AppLogo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 48, height: 48)
+                        .clipShape(RoundedRectangle(cornerRadius: Theme.radiusMD))
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("AdOrNot")
@@ -299,15 +407,11 @@ struct SettingsView: View {
                                 .frame(width: 100, height: 100)
                                 .blur(radius: 15)
 
-                            Image(systemName: "shield.checkered")
-                                .font(.system(size: 44, weight: .medium))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [Theme.brandBlueLight, Theme.brandCyan],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
+                            Image("AppLogo")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 56, height: 56)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
 
                         Text("AdOrNot")

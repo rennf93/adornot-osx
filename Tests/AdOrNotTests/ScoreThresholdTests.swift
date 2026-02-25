@@ -3,21 +3,21 @@ import SwiftUI
 @testable import AdOrNot
 
 @Test func scoreThresholdColorGreen() {
-    #expect(ScoreThreshold.color(for: 60) == .green)
-    #expect(ScoreThreshold.color(for: 100) == .green)
-    #expect(ScoreThreshold.color(for: 75.5) == .green)
+    #expect(ScoreThreshold.color(for: 60) == Theme.scoreGood)
+    #expect(ScoreThreshold.color(for: 100) == Theme.scoreGood)
+    #expect(ScoreThreshold.color(for: 75.5) == Theme.scoreGood)
 }
 
 @Test func scoreThresholdColorOrange() {
-    #expect(ScoreThreshold.color(for: 30) == .orange)
-    #expect(ScoreThreshold.color(for: 59.9) == .orange)
-    #expect(ScoreThreshold.color(for: 45) == .orange)
+    #expect(ScoreThreshold.color(for: 30) == Theme.scoreModerate)
+    #expect(ScoreThreshold.color(for: 59.9) == Theme.scoreModerate)
+    #expect(ScoreThreshold.color(for: 45) == Theme.scoreModerate)
 }
 
 @Test func scoreThresholdColorRed() {
-    #expect(ScoreThreshold.color(for: 0) == .red)
-    #expect(ScoreThreshold.color(for: 29.9) == .red)
-    #expect(ScoreThreshold.color(for: 15) == .red)
+    #expect(ScoreThreshold.color(for: 0) == Theme.scoreWeak)
+    #expect(ScoreThreshold.color(for: 29.9) == Theme.scoreWeak)
+    #expect(ScoreThreshold.color(for: 15) == Theme.scoreWeak)
 }
 
 @Test func scoreThresholdLabelStrong() {
@@ -36,11 +36,11 @@ import SwiftUI
 }
 
 @Test func scoreThresholdBoundaryExact60() {
-    #expect(ScoreThreshold.color(for: 60) == .green)
+    #expect(ScoreThreshold.color(for: 60) == Theme.scoreGood)
     #expect(ScoreThreshold.label(for: 60) == "Strong Protection")
 }
 
 @Test func scoreThresholdBoundaryExact30() {
-    #expect(ScoreThreshold.color(for: 30) == .orange)
+    #expect(ScoreThreshold.color(for: 30) == Theme.scoreModerate)
     #expect(ScoreThreshold.label(for: 30) == "Moderate Protection")
 }

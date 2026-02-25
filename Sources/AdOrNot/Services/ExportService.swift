@@ -10,6 +10,7 @@ enum ExportService {
         Device: \(report.deviceName)
         OS: \(report.osVersion)
         Duration: \(String(format: "%.1f", report.durationSeconds))s
+        Test Mode: \(report.testModeEnum.label)
 
         Overall Score: \(String(format: "%.0f", report.overallScore))%
         Blocked: \(report.blockedDomains)/\(report.totalDomains) domains
@@ -44,6 +45,7 @@ enum ExportService {
             let date: Date
             let device: String
             let osVersion: String
+            let testMode: String
             let overallScore: Double
             let categoryScores: [String: Double]
             let results: [ExportableResult]
@@ -61,6 +63,7 @@ enum ExportService {
             date: report.date,
             device: report.deviceName,
             osVersion: report.osVersion,
+            testMode: report.testModeEnum.label,
             overallScore: report.overallScore,
             categoryScores: report.categoryScores,
             results: report.results.map {
