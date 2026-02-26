@@ -98,6 +98,12 @@ enum Theme {
     static let radiusLG: CGFloat = 16
     static let radiusXL: CGFloat = 20
 
+    // MARK: - Animation Durations
+
+    static let animationQuick: Double = 0.15
+    static let animationDefault: Double = 0.25
+    static let animationGaugeFill: Double = 1.2
+
     // MARK: - Shadows
 
     static let shadowColor = Color.black.opacity(0.15)
@@ -190,7 +196,7 @@ struct GradientButtonStyle: ButtonStyle {
                             radius: configuration.isPressed ? 4 : 10, y: 4)
             }
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
+            .animation(.easeInOut(duration: Theme.animationQuick), value: configuration.isPressed)
     }
 }
 
@@ -212,7 +218,7 @@ struct SecondaryButtonStyle: ButtonStyle {
                     )
             }
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
+            .animation(.easeInOut(duration: Theme.animationQuick), value: configuration.isPressed)
     }
 }
 

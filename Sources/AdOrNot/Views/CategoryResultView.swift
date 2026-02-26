@@ -20,7 +20,7 @@ struct CategoryResultView: View {
             } else {
                 // Header (tappable)
                 Button {
-                    withAnimation(.easeInOut(duration: 0.25)) {
+                    withAnimation(.easeInOut(duration: Theme.animationDefault)) {
                         isExpanded.toggle()
                     }
                 } label: {
@@ -31,8 +31,7 @@ struct CategoryResultView: View {
                 // Expandable content
                 if isExpanded {
                     VStack(spacing: 0) {
-                        Divider()
-                            .overlay(Color.white.opacity(0.06))
+                        StyledDivider()
 
                         LazyVStack(spacing: 0) {
                             ForEach(results.sorted(by: { $0.domain.provider < $1.domain.provider })) { result in

@@ -46,7 +46,7 @@ struct HomeView: View {
                     heroSection
                     statsRow
 
-                    if viewModel.isPiholeConfigured {
+                    if viewModel.pihole.isPiholeConfigured {
                         testModePicker
                     }
 
@@ -148,23 +148,7 @@ struct HomeView: View {
     // MARK: - Network Warning
 
     private var networkWarning: some View {
-        HStack(spacing: Theme.spacingSM) {
-            Image(systemName: "wifi.slash")
-                .font(.body)
-            Text("No network connection")
-                .font(.subheadline.weight(.medium))
-        }
-        .foregroundStyle(.white)
-        .padding(.horizontal, Theme.spacingMD)
-        .padding(.vertical, Theme.spacingSM)
-        .background {
-            RoundedRectangle(cornerRadius: Theme.radiusMD)
-                .fill(Theme.scoreWeak.opacity(0.3))
-                .overlay(
-                    RoundedRectangle(cornerRadius: Theme.radiusMD)
-                        .strokeBorder(Theme.scoreWeak.opacity(0.5), lineWidth: 1)
-                )
-        }
+        WarningBanner(icon: "wifi.slash", message: "No network connection")
     }
 
     // MARK: - Start Button

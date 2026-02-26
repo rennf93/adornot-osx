@@ -107,7 +107,7 @@ struct DomainsView: View {
 
     private var domainsSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacingMD) {
-            sectionHeader(title: "Test Domains", icon: "globe")
+            SectionHeader(title: "Test Domains", icon: "globe")
 
             switch grouping {
             case .byCategory:
@@ -182,7 +182,7 @@ struct DomainsView: View {
     ) -> some View {
         VStack(spacing: 0) {
             Button {
-                withAnimation(.easeInOut(duration: 0.25)) {
+                withAnimation(.easeInOut(duration: Theme.animationDefault)) {
                     if expandedSections.contains(key) {
                         expandedSections.remove(key)
                     } else {
@@ -237,8 +237,7 @@ struct DomainsView: View {
 
             if expandedSections.contains(key) {
                 VStack(spacing: 0) {
-                    Divider()
-                        .overlay(Color.white.opacity(0.06))
+                    StyledDivider()
 
                     LazyVStack(spacing: 0) {
                         content()
@@ -292,7 +291,7 @@ struct DomainsView: View {
 
     private var blocklistsSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacingMD) {
-            sectionHeader(title: "Recommended Blocklists", icon: "list.bullet.rectangle")
+            SectionHeader(title: "Recommended Blocklists", icon: "list.bullet.rectangle")
 
             if filteredBlocklists.isEmpty {
                 Text("No blocklists match your search.")
@@ -365,18 +364,6 @@ struct DomainsView: View {
         .glassCard(padding: Theme.spacingMD)
     }
 
-    // MARK: - Helpers
-
-    private func sectionHeader(title: String, icon: String) -> some View {
-        HStack(spacing: Theme.spacingSM) {
-            Image(systemName: icon)
-                .font(.subheadline)
-                .foregroundStyle(Theme.brandBlueLight)
-            Text(title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.7))
-        }
-    }
 }
 
 #Preview {

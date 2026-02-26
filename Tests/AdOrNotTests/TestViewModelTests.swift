@@ -80,7 +80,7 @@ import SwiftData
 
 @Test @MainActor func viewModelPiholeNotConfiguredByDefault() {
     let vm = TestViewModel(testService: nil, useNetworkMonitor: false)
-    #expect(vm.isPiholeConfigured == false)
+    #expect(vm.pihole.isPiholeConfigured == false)
 }
 
 @Test @MainActor func viewModelPiholeBlockedByNoNetwork() throws {

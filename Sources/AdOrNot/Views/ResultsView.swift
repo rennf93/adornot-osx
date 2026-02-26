@@ -26,13 +26,13 @@ struct ResultsView: View {
             ScrollView {
                 VStack(spacing: Theme.spacingLG) {
                     // Pi-hole error banner
-                    if let error = viewModel.piholeError {
+                    if let error = viewModel.pihole.piholeError {
                         piholeErrorBanner(error)
                     }
 
                     // Hero score
                     scoreHero
-                        .padding(.top, viewModel.piholeError == nil ? Theme.spacingLG : 0)
+                        .padding(.top, viewModel.pihole.piholeError == nil ? Theme.spacingLG : 0)
 
                     // Summary stats
                     summaryStats
@@ -122,17 +122,11 @@ struct ResultsView: View {
     // MARK: - Blocklist Breakdown
 
     private var blocklistBreakdown: some View {
-        let piholeResults = viewModel.results.filter { $0.domain.category == .piholeBlocklists }
-        let byList = Dictionary(grouping: piholeResults, by: { $0.domain.provider })
-        let sorted = byList.sorted { a, b in
-            let aScore = Double(a.value.filter(\.isBlocked).count) / Double(a.value.count)
-            let bScore = Double(b.value.filter(\.isBlocked).count) / Double(b.value.count)
-            return aScore > bScore
-        }
+        let items = viewModel.blocklistBreakdownData
 
         return VStack(spacing: Theme.spacingMD) {
             Button {
-                withAnimation(.easeInOut(duration: 0.25)) {
+                withAnimation(.easeInOut(duration: Theme.animationDefault)) {
                     blocklistExpanded.toggle()
                 }
             } label: {
@@ -141,7 +135,7 @@ struct ResultsView: View {
                         .font(.headline)
                         .foregroundStyle(.white)
                     Spacer()
-                    Text("\(byList.count) lists")
+                    Text("\(items.count) lists")
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.5))
                     Image(systemName: "chevron.right")
@@ -153,27 +147,23 @@ struct ResultsView: View {
             .buttonStyle(.plain)
 
             if blocklistExpanded {
-                ForEach(Array(sorted.enumerated()), id: \.element.key) { index, item in
-                    let blocked = item.value.filter(\.isBlocked).count
-                    let total = item.value.count
-                    let score = total > 0 ? Double(blocked) / Double(total) * 100 : 0
-
+                ForEach(items) { item in
                     HStack(spacing: Theme.spacingSM) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(item.key)
+                            Text(item.name)
                                 .font(.subheadline.weight(.medium))
                                 .foregroundStyle(.white)
                                 .lineLimit(1)
-                            Text("\(blocked)/\(total) blocked")
+                            Text("\(item.blocked)/\(item.total) blocked")
                                 .font(.caption)
                                 .foregroundStyle(.white.opacity(0.5))
                         }
 
                         Spacer()
 
-                        Text("\(Int(score))%")
+                        Text("\(Int(item.score))%")
                             .font(.subheadline.weight(.semibold).monospacedDigit())
-                            .foregroundStyle(ScoreThreshold.color(for: score))
+                            .foregroundStyle(ScoreThreshold.color(for: item.score))
                     }
                     .padding(Theme.spacingSM)
                     .background {
@@ -211,28 +201,11 @@ struct ResultsView: View {
     // MARK: - Pi-hole Error Banner
 
     private func piholeErrorBanner(_ error: String) -> some View {
-        HStack(spacing: Theme.spacingSM) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.body)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Pi-hole Connection Error")
-                    .font(.subheadline.weight(.semibold))
-                Text(error)
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.7))
-            }
-            Spacer()
-        }
-        .foregroundStyle(.white)
-        .padding(Theme.spacingMD)
-        .background {
-            RoundedRectangle(cornerRadius: Theme.radiusMD)
-                .fill(Theme.scoreWeak.opacity(0.3))
-                .overlay(
-                    RoundedRectangle(cornerRadius: Theme.radiusMD)
-                        .strokeBorder(Theme.scoreWeak.opacity(0.5), lineWidth: 1)
-                )
-        }
+        WarningBanner(
+            icon: "exclamationmark.triangle.fill",
+            title: "Pi-hole Connection Error",
+            message: error
+        )
         .padding(.top, Theme.spacingMD)
     }
 

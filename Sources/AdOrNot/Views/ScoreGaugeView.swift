@@ -64,7 +64,7 @@ struct ScoreGaugeView: View {
         .accessibilityValue(ScoreThreshold.label(for: score))
         .onAppear {
             if animateOnAppear {
-                withAnimation(.easeOut(duration: 1.2)) {
+                withAnimation(.easeOut(duration: Theme.animationGaugeFill)) {
                     displayedScore = score
                 }
             } else {
@@ -73,7 +73,7 @@ struct ScoreGaugeView: View {
         }
         .onChange(of: score) { _, newValue in
             if animateOnAppear {
-                withAnimation(.easeOut(duration: 1.2)) {
+                withAnimation(.easeOut(duration: Theme.animationGaugeFill)) {
                     displayedScore = newValue
                 }
             } else {

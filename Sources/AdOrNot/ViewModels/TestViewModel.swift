@@ -41,12 +41,10 @@ final class TestViewModel {
     var requestTimeout: Double = 6
     var exportFormat: ExportFormat = .text
     var testMode: TestMode = .standard
-    var piholeHost: String = UserDefaults.standard.string(forKey: "piholeHost") ?? ""
-    var piholeError: String?
 
-    var isPiholeConfigured: Bool {
-        !piholeHost.isEmpty && KeychainHelper.load(key: "piholePassword") != nil
-    }
+    // MARK: - Pi-hole
+
+    let pihole = PiholeTestOrchestrator()
 
     // MARK: - Private
 
@@ -94,13 +92,34 @@ final class TestViewModel {
         }
     }
 
+    struct BlocklistBreakdownItem: Identifiable {
+        let name: String
+        let blocked: Int
+        let total: Int
+        var score: Double { total > 0 ? Double(blocked) / Double(total) * 100 : 0 }
+        var id: String { name }
+    }
+
+    var blocklistBreakdownData: [BlocklistBreakdownItem] {
+        let piholeResults = results.filter { $0.domain.category == .piholeBlocklists }
+        let byList = Dictionary(grouping: piholeResults, by: { $0.domain.provider })
+        return byList.map { name, listResults in
+            BlocklistBreakdownItem(
+                name: name,
+                blocked: listResults.filter(\.isBlocked).count,
+                total: listResults.count
+            )
+        }
+        .sorted { $0.score > $1.score }
+    }
+
     // MARK: - Actions
 
     func startTest(modelContext: ModelContext) {
         guard state != .running else { return }
         guard !networkUnavailable else { return }
 
-        piholeError = nil
+        pihole.piholeError = nil
         let domains = domainsToTest
         state = .running
         elapsedTime = 0
@@ -117,14 +136,7 @@ final class TestViewModel {
 
     private func startStandardTest(domains: [TestDomain], modelContext: ModelContext, mode: TestMode) {
         totalCount = domains.count
-
-        timerTask = Task { [weak self] in
-            let start = Date()
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(100))
-                await MainActor.run { self?.elapsedTime = Date().timeIntervalSince(start) }
-            }
-        }
+        startTimer()
 
         testTask = Task { [weak self] in
             guard let self else { return }
@@ -166,27 +178,12 @@ final class TestViewModel {
 
     private func startPiholeTest(modelContext: ModelContext) {
         totalCount = 0
-
-        timerTask = Task { [weak self] in
-            let start = Date()
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(100))
-                await MainActor.run { self?.elapsedTime = Date().timeIntervalSince(start) }
-            }
-        }
+        startTimer()
 
         testTask = Task { [weak self] in
             guard let self else { return }
-            let startTime = Date()
 
-            // Phase 1: Fetch domains from Pi-hole blocklists
-            let password = KeychainHelper.load(key: "piholePassword") ?? ""
-            let piholeService = PiholeTestService(baseURL: self.piholeHost, password: password)
-            let blocklistDomains = await piholeService.fetchBlocklistDomains()
-
-            if blocklistDomains.isEmpty {
-                let error = await piholeService.lastError
-                self.piholeError = error ?? "No domains found in Pi-hole blocklists"
+            guard let blocklistDomains = await self.pihole.fetchDomains(requestTimeout: self.requestTimeout) else {
                 self.timerTask?.cancel()
                 self.state = .idle
                 return
@@ -194,62 +191,11 @@ final class TestViewModel {
 
             guard !Task.isCancelled else { return }
 
-            // Combine standard curated domains + blocklist domains
-            let standardDomains = self.domainsToTest
-            let allDomains = standardDomains + blocklistDomains
+            let allDomains = self.domainsToTest + blocklistDomains
             self.totalCount = allDomains.count
 
-            // Phase 2: Test all domains with HEAD requests
-            let testService = AdOrNotTestService(requestTimeout: self.requestTimeout)
-
-            let testResults = await testService.runTests(
-                domains: allDomains
-            ) { [weak self] progress in
-                Task { @MainActor [weak self] in
-                    guard let self else { return }
-                    self.completedCount = progress.completed
-                    self.progress = Double(progress.completed) / Double(progress.total)
-                    self.currentDomain = progress.latestResult.domain.hostname
-                }
-            }
-
-            guard !Task.isCancelled else { return }
-
-            self.timerTask?.cancel()
-            self.results = testResults
-            self.calculateScores()
-
-            let duration = Date().timeIntervalSince(startTime)
-            let report = TestReport(
-                results: testResults,
-                duration: duration,
-                deviceName: self.deviceName,
-                osVersion: self.osVersionString,
-                testMode: .pihole
-            )
-            modelContext.insert(report)
-            try? modelContext.save()
-            self.latestReport = report
-
-            self.state = .completed
+            self.startStandardTest(domains: allDomains, modelContext: modelContext, mode: .pihole)
         }
-    }
-
-    func savePiholeHost(_ host: String) {
-        piholeHost = host
-        UserDefaults.standard.set(host, forKey: "piholeHost")
-    }
-
-    func testPiholeConnection() async -> Bool {
-        let password = KeychainHelper.load(key: "piholePassword") ?? ""
-        let service = PiholeTestService(baseURL: piholeHost, password: password)
-        let success = await service.authenticate()
-        if !success {
-            piholeError = await service.lastError
-        } else {
-            piholeError = nil
-        }
-        return success
     }
 
     func cancelTest() {
@@ -272,16 +218,20 @@ final class TestViewModel {
 
     // MARK: - Private Helpers
 
-    private func calculateScores() {
-        guard !results.isEmpty else { return }
-        let blocked = results.filter(\.isBlocked).count
-        overallScore = (Double(blocked) / Double(results.count)) * 100.0
-
-        let grouped = Dictionary(grouping: results, by: { $0.domain.category })
-        for (category, catResults) in grouped {
-            let catBlocked = catResults.filter(\.isBlocked).count
-            categoryScores[category] = (Double(catBlocked) / Double(catResults.count)) * 100.0
+    private func startTimer() {
+        timerTask = Task { [weak self] in
+            let start = Date()
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(100))
+                await MainActor.run { self?.elapsedTime = Date().timeIntervalSince(start) }
+            }
         }
+    }
+
+    private func calculateScores() {
+        let scores = ScoreCalculator.calculate(from: results)
+        overallScore = scores.overall
+        categoryScores = scores.byCategory
     }
 
     private var deviceName: String {

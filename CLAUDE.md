@@ -18,7 +18,7 @@ Tests use **Swift Testing** (`import Testing`, `@Test`, `#expect`). Never use XC
 
 ## Architecture Overview
 
-**MVVM + Actor Services** with SwiftUI multiplatform. 28 source files, 10 test files.
+**MVVM + Actor Services** with SwiftUI multiplatform. 33 source files, 14 test files.
 
 ### File Map
 
@@ -30,7 +30,7 @@ Tests use **Swift Testing** (`import Testing`, `@Test`, `#expect`). Never use XC
 - `TestCategory.swift` — Enum with 6 cases (`ads`, `analytics`, `errorTrackers`, `socialTrackers`, `mix`, `oems`), each with `rawValue`, `systemImage`, `description`
 - `TestDomain.swift` — `hostname` + `provider` + `category`
 - `TestResult.swift` — `domain` + `isBlocked` + `responseTimeMs` + `errorDescription`
-- `TestReport.swift` — `@Model` (SwiftData). Stores `resultsData` as JSON-encoded `Data` blob and `categoryScores` as `[String: Double]` with `TestCategory.rawValue` keys
+- `TestReport.swift` — `@Model` (SwiftData). Uses `ScoreCalculator` for score computation. Stores `resultsData` as JSON-encoded `Data` blob and `categoryScores` as `[String: Double]` with `TestCategory.rawValue` keys
 - `DomainRegistry.swift` — 128 curated domains across 30 providers, organized by `// MARK:` sections per category
 - `ExportFormat.swift` — `.text` / `.json` enum
 
@@ -39,27 +39,33 @@ Tests use **Swift Testing** (`import Testing`, `@Test`, `#expect`). Never use XC
 - `AdOrNotTestServiceProtocol.swift` — Protocol for DI, `AdOrNotTestService` conforms via extension
 - `URLSessionProtocol.swift` — Protocol wrapping `data(for:)`, `URLSession` conforms via extension
 - `ExportService.swift` — Static methods for text and JSON report generation
+- `ScoreCalculator.swift` — Single source of truth for score computation. `Scores` struct with `overall`, `byCategory`, `byCategoryRawValue`
+- `PiholeTestService.swift` — Actor. Pi-hole v6 API client: auth, blocklist URL fetching, hosts file parsing
+- `PiholeTestOrchestrator.swift` — `@Observable @MainActor`. Pi-hole config (host, password), connection testing, domain fetching. Owned by `TestViewModel.pihole`
 
 **`ViewModels/`** — UI state
-- `TestViewModel.swift` — `@Observable @MainActor`. Three states: `.idle`, `.running`, `.completed`. Manages test execution, scores, category filtering, `NWPathMonitor` for connectivity, configurable timeout
+- `TestViewModel.swift` — `@Observable @MainActor`. Three states: `.idle`, `.running`, `.completed`. Manages test execution via `ScoreCalculator`, category filtering, `NWPathMonitor` for connectivity, configurable timeout. Pi-hole logic delegated to `pihole: PiholeTestOrchestrator`
 
-**`Views/`** — 13 SwiftUI views
+**`Views/`** — 16 SwiftUI views
 - `LaunchView.swift` — Root view (not ContentView). Animated splash for 1.5s, then transitions to `ContentView`
 - `ContentView.swift` — `NavigationSplitView` on macOS (min 720x520) / `TabView` on iOS. Three tabs: Test, History, Settings
 - `HomeView.swift` — Start test / show results hub
 - `TestingView.swift` — Progress during test execution
-- `ResultsView.swift` — Overall + per-category score display
+- `ResultsView.swift` — Overall + per-category score display. Blocklist breakdown uses `viewModel.blocklistBreakdownData`
 - `ScoreGaugeView.swift` — Animated circular gauge
 - `CategoryResultView.swift` — Per-category domain results
 - `DomainResultRow.swift` — Single domain blocked/exposed row
 - `HistoryView.swift` — SwiftData-backed test history list
 - `HistoryDetailView.swift` — Detail view for a past test report
-- `SettingsView.swift` — Timeout, category selection, about info
+- `SettingsView.swift` — Timeout, category selection, data management, about
+- `PiholeSettingsSection.swift` — Pi-hole host/password/connection test UI (extracted from SettingsView)
+- `AboutView.swift` — About detail sheet (extracted from SettingsView)
+- `SharedComponents.swift` — `SectionHeader`, `WarningBanner`, `StyledDivider` reusable components
 - `ShareSheet.swift` — `UIActivityViewController` (iOS) / AppKit copy-to-clipboard modal (macOS)
 - `PreviewHelpers.swift` — `PreviewData` factories + `ModelContainer.preview` (in-memory)
 
 **Root files**
-- `Theme.swift` — Centralized design system: colors, gradients, spacing, radii, shadows, `GlassCard` modifier, `GradientButtonStyle`, `SecondaryButtonStyle`, `AnimatedMeshBackground`, `StatCard`, responsive grid helpers
+- `Theme.swift` — Centralized design system: colors, gradients, spacing, radii, shadows, animation durations (`animationQuick`, `animationDefault`, `animationGaugeFill`), `GlassCard` modifier, `GradientButtonStyle`, `SecondaryButtonStyle`, `AnimatedMeshBackground`, `StatCard`, responsive grid helpers
 - `ScoreThreshold.swift` — `good = 60`, `moderate = 30`, with `color(for:)` and `label(for:)` helpers
 
 ## Blocking Detection Algorithm
@@ -79,6 +85,10 @@ This is the most critical domain logic. Located in `AdOrNotTestService.swift:61-
 5. **Any other error** → **BLOCKED** (default fallback)
 
 **Warning:** Changing this logic affects every test result across the app.
+
+## Score Calculation
+
+`ScoreCalculator.calculate(from:)` is the single source of truth. Used by both `TestReport.init` (for persistence) and `TestViewModel.calculateScores()` (for live display). Returns a `Scores` struct with `overall: Double` and `byCategory: [TestCategory: Double]`. The `byCategoryRawValue` computed property converts to `[String: Double]` for SwiftData storage.
 
 ## Concurrency Model
 
@@ -113,17 +123,22 @@ Platform check: `#if os(macOS)` / `#if os(iOS)` in `ContentView`, `Theme`, `Test
 
 ## Testing Patterns
 
-**Framework:** Swift Testing (`import Testing`, `@Test`, `#expect`). 8 test files, ~50 tests.
+**Framework:** Swift Testing (`import Testing`, `@Test`, `#expect`). 14 test files, 98 tests.
 
-**Test files:** `AdOrNotTestServiceTests`, `ArrayChunkedTests`, `DomainRegistryTests`, `ExportServiceTests`, `ScoreThresholdTests`, `TestReportTests`, `TestResultTests`, `TestViewModelTests`
+**Test files:** `AdOrNotTestServiceTests`, `ArrayChunkedTests`, `BlocklistRegistryTests`, `DomainRegistryTests`, `ExportServiceTests`, `KeychainHelperTests`, `PiholeTestServiceTests`, `ProviderRegistryTests`, `ScoreCalculatorTests`, `ScoreThresholdTests`, `TestModeTests`, `TestReportTests`, `TestResultTests`, `TestViewModelTests`
 
 **Mocks** (`Tests/AdOrNotTests/Mocks/`):
 - `MockTestService` — Actor conforming to `AdOrNotTestServiceProtocol`. Returns preconfigured results
 - `MockURLSession` — Class (`@unchecked Sendable`) conforming to `URLSessionProtocol`. Supports per-hostname response configuration
+- `PiholeMockURLSession` — Class (`@unchecked Sendable`) conforming to `URLSessionProtocol`. Mocks Pi-hole API auth, lists, and blocklist file downloads
+
+**Test helpers** (`Tests/AdOrNotTests/Helpers/`):
+- `TestDataFactory` — `makeDomains()`, `makeResults()`, `makeReport()` factory methods
 
 **Dependency injection:**
 - `TestViewModel(testService:useNetworkMonitor:false)` — Inject mock service, disable network monitor
 - `AdOrNotTestService(session:)` — Inject mock URL session
+- `PiholeTestService(baseURL:password:session:)` — Inject mock URL session
 
 **Important:** ViewModel tests must be `@MainActor` since `TestViewModel` is `@MainActor`.
 
@@ -135,13 +150,15 @@ Platform check: `#if os(macOS)` / `#if os(iOS)` in `ContentView`, `Theme`, `Test
 
 **Corner radii:** `radiusSM=8`, `radiusMD=12`, `radiusLG=16`, `radiusXL=20`
 
+**Animation durations:** `animationQuick=0.15`, `animationDefault=0.25`, `animationGaugeFill=1.2`
+
 **Responsive grid pattern** (used in ResultsView, HistoryView, HomeView, SettingsView):
 1. Track container width with `onGeometryChange`
 2. Compute columns via `Theme.responsiveColumnCount(availableWidth:minColumns:idealItemWidth:)`
 3. Build grid items via `Theme.flexibleColumns(count:spacing:)`
 4. Render with `LazyVGrid`
 
-**Reusable components:** `.glassCard()` modifier, `GradientButtonStyle`, `SecondaryButtonStyle`, `AnimatedMeshBackground`, `StatCard`
+**Reusable components:** `.glassCard()` modifier, `GradientButtonStyle`, `SecondaryButtonStyle`, `AnimatedMeshBackground`, `StatCard`, `SectionHeader`, `WarningBanner`, `StyledDivider`
 
 ## How to Add Domains
 
@@ -165,3 +182,7 @@ Platform check: `#if os(macOS)` / `#if os(iOS)` in `ContentView`, `Theme`, `Test
 - **Preview helpers:** Use `PreviewData` factories for sample data and `.modelContainer(.preview)` for SwiftData previews
 - **Entitlements:** App Sandbox + `com.apple.security.network.client` only — no other permissions
 - **`ScoreThreshold.swift`** is at the `Sources/AdOrNot/` root level, not inside `Models/`
+- **Pi-hole properties** live on `viewModel.pihole` (a `PiholeTestOrchestrator`), not directly on `TestViewModel`
+- **`ScoreCalculator`** is the single source of truth for score computation — never duplicate score logic elsewhere
+- **`SectionHeader`, `WarningBanner`, `StyledDivider`** in `SharedComponents.swift` — use these instead of inline implementations
+- **Animation durations** — use `Theme.animationQuick/animationDefault/animationGaugeFill` instead of hardcoded values
