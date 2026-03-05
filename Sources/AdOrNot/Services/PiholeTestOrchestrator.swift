@@ -26,6 +26,7 @@ final class PiholeTestOrchestrator {
         } else {
             piholeError = nil
         }
+        await service.cleanup()
         return success
     }
 
@@ -38,9 +39,11 @@ final class PiholeTestOrchestrator {
         if blocklistDomains.isEmpty {
             let error = await piholeService.lastError
             piholeError = error ?? "No domains found in Pi-hole blocklists"
+            await piholeService.cleanup()
             return nil
         }
 
+        await piholeService.cleanup()
         return blocklistDomains
     }
 }

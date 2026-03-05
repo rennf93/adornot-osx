@@ -63,4 +63,6 @@ final class PiholeMockURLSession: URLSessionProtocol, @unchecked Sendable {
 
         throw URLError(.unsupportedURL)
     }
+
+    func invalidateAndCancel() {}
 }

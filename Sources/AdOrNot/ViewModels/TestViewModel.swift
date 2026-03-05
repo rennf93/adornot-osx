@@ -49,6 +49,7 @@ final class TestViewModel {
     // MARK: - Private
 
     private let injectedTestService: (any AdOrNotTestServiceProtocol)?
+    nonisolated(unsafe) private var currentTestService: (any AdOrNotTestServiceProtocol)?
     private var testTask: Task<Void, Never>?
     private var timerTask: Task<Void, Never>?
     private let networkMonitor: NWPathMonitor?
@@ -76,6 +77,10 @@ final class TestViewModel {
 
     deinit {
         networkMonitor?.cancel()
+        if let service = currentTestService {
+            let s = service
+            Task { await s.cleanup() }
+        }
     }
 
     // MARK: - Computed
@@ -142,6 +147,7 @@ final class TestViewModel {
             guard let self else { return }
             let startTime = Date()
             let testService = self.injectedTestService ?? AdOrNotTestService(requestTimeout: self.requestTimeout)
+            self.currentTestService = testService
 
             let testResults = await testService.runTests(
                 domains: domains
@@ -172,6 +178,8 @@ final class TestViewModel {
             try? modelContext.save()
             self.latestReport = report
 
+            await testService.cleanup()
+            self.currentTestService = nil
             self.state = .completed
         }
     }
@@ -201,6 +209,11 @@ final class TestViewModel {
     func cancelTest() {
         testTask?.cancel()
         timerTask?.cancel()
+        if let service = currentTestService {
+            let s = service
+            Task { await s.cleanup() }
+        }
+        currentTestService = nil
         state = .idle
     }
 
@@ -222,7 +235,7 @@ final class TestViewModel {
         timerTask = Task { [weak self] in
             let start = Date()
             while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(100))
+                try? await Task.sleep(for: .seconds(1))
                 await MainActor.run { self?.elapsedTime = Date().timeIntervalSince(start) }
             }
         }

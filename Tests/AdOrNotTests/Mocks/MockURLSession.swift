@@ -24,4 +24,6 @@ final class MockURLSession: URLSessionProtocol, @unchecked Sendable {
         }
         return try result.get()
     }
+
+    func invalidateAndCancel() {}
 }

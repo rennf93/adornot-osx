@@ -5,6 +5,7 @@ protocol AdOrNotTestServiceProtocol: Sendable {
         domains: [TestDomain],
         onProgress: @Sendable (AdOrNotTestService.TestProgress) -> Void
     ) async -> [TestResult]
+    func cleanup() async
 }
 
 extension AdOrNotTestService: AdOrNotTestServiceProtocol {}

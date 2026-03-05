@@ -21,4 +21,6 @@ actor MockTestService: AdOrNotTestServiceProtocol {
         }
         return mockResults
     }
+
+    func cleanup() async {}
 }

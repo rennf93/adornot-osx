@@ -79,10 +79,12 @@ This is the most critical domain logic. Located in `AdOrNotTestService.swift:61-
 1. **Any HTTP response** (any status code) → **NOT blocked** — DNS resolved, connection succeeded
 2. **`.notConnectedToInternet`** → **NOT blocked** — Avoids false positives when device is offline
 3. **`.serverCertificateUntrusted`** → **NOT blocked** — DNS resolved successfully (cert errors ≠ blocking)
-4. **Blocking error set** → **BLOCKED**:
+4. **`.secureConnectionFailed`** → **NOT blocked** — SSL handshake failure proves DNS resolved and TCP connected
+5. **`.appTransportSecurityRequiresSecureConnection`** → **NOT blocked** — ATS blocked an HTTP redirect, but original DNS resolved
+6. **Blocking error set** → **BLOCKED**:
    - `.timedOut`, `.cannotFindHost`, `.cannotConnectToHost`
-   - `.networkConnectionLost`, `.dnsLookupFailed`, `.secureConnectionFailed`
-5. **Any other error** → **BLOCKED** (default fallback)
+   - `.networkConnectionLost`, `.dnsLookupFailed`
+7. **Any other error** → **BLOCKED** (default fallback)
 
 **Warning:** Changing this logic affects every test result across the app.
 
@@ -98,6 +100,7 @@ This is the most critical domain logic. Located in `AdOrNotTestService.swift:61-
 - Batches execute **sequentially** — batch N+1 starts after batch N completes
 - Progress callback fires per individual result (not per batch)
 - `TestViewModel` receives progress updates on `@MainActor`
+- **URLSession cleanup:** `AdOrNotTestService.cleanup()` calls `session.invalidateAndCancel()` to prevent `nw_connection` warnings. Called by `TestViewModel` after test completion or cancellation, and by `PiholeTestOrchestrator` after Pi-hole API calls
 
 ## Platform-Specific Patterns
 
@@ -123,7 +126,7 @@ Platform check: `#if os(macOS)` / `#if os(iOS)` in `ContentView`, `Theme`, `Test
 
 ## Testing Patterns
 
-**Framework:** Swift Testing (`import Testing`, `@Test`, `#expect`). 14 test files, 98 tests.
+**Framework:** Swift Testing (`import Testing`, `@Test`, `#expect`). 14 test files, 100 tests.
 
 **Test files:** `AdOrNotTestServiceTests`, `ArrayChunkedTests`, `BlocklistRegistryTests`, `DomainRegistryTests`, `ExportServiceTests`, `KeychainHelperTests`, `PiholeTestServiceTests`, `ProviderRegistryTests`, `ScoreCalculatorTests`, `ScoreThresholdTests`, `TestModeTests`, `TestReportTests`, `TestResultTests`, `TestViewModelTests`
 

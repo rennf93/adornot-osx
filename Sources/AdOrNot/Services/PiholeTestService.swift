@@ -28,6 +28,10 @@ actor PiholeTestService {
         }
     }
 
+    func cleanup() {
+        session.invalidateAndCancel()
+    }
+
     /// Normalizes user input into a proper base URL.
     private static func normalizeURL(_ input: String) -> String {
         var url = input.trimmingCharacters(in: .whitespacesAndNewlines)

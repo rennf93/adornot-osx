@@ -92,6 +92,30 @@ import Foundation
     #expect(progressUpdates.contains(3))
 }
 
+@Test func serviceClassifiesSecureConnectionFailedAsNotBlocked() async {
+    let mock = MockURLSession()
+    mock.setFailure(for: "ssl.example.com", error: .secureConnectionFailed)
+    let service = AdOrNotTestService(session: mock)
+
+    let domain = TestDomain(hostname: "ssl.example.com", provider: "T", category: .ads)
+    let results = await service.runTests(domains: [domain]) { _ in }
+
+    // SSL handshake failure means DNS resolved and TCP connected — not blocked
+    #expect(results[0].isBlocked == false)
+}
+
+@Test func serviceClassifiesATSViolationAsNotBlocked() async {
+    let mock = MockURLSession()
+    mock.setFailure(for: "ats.example.com", error: .appTransportSecurityRequiresSecureConnection)
+    let service = AdOrNotTestService(session: mock)
+
+    let domain = TestDomain(hostname: "ats.example.com", provider: "T", category: .ads)
+    let results = await service.runTests(domains: [domain]) { _ in }
+
+    // ATS blocked an HTTP redirect — original HTTPS resolved DNS — not blocked
+    #expect(results[0].isBlocked == false)
+}
+
 @Test func serviceHandlesMultipleDomainsConcurrently() async {
     let mock = MockURLSession()
     mock.setSuccess(for: "open1.com")

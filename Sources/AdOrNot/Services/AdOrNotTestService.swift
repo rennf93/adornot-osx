@@ -28,6 +28,10 @@ actor AdOrNotTestService {
         }
     }
 
+    func cleanup() {
+        session.invalidateAndCancel()
+    }
+
     func runTests(
         domains: [TestDomain],
         onProgress: @Sendable (TestProgress) -> Void
@@ -89,7 +93,6 @@ actor AdOrNotTestService {
                 .cannotConnectToHost,
                 .networkConnectionLost,
                 .dnsLookupFailed,
-                .secureConnectionFailed,
             ]
 
             let isBlocked: Bool
@@ -99,6 +102,12 @@ actor AdOrNotTestService {
                 isBlocked = false
             } else if urlError?.code == .serverCertificateUntrusted {
                 // Certificate error means DNS resolved successfully — not blocked
+                isBlocked = false
+            } else if urlError?.code == .secureConnectionFailed {
+                // SSL handshake failure means DNS resolved and TCP connected — not blocked
+                isBlocked = false
+            } else if urlError?.code == .appTransportSecurityRequiresSecureConnection {
+                // ATS blocked an HTTP redirect — original HTTPS resolved DNS — not blocked
                 isBlocked = false
             } else if let code = urlError?.code, blockingErrors.contains(code) {
                 isBlocked = true
