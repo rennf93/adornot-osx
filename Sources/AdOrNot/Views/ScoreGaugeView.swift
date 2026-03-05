@@ -47,14 +47,14 @@ struct ScoreGaugeView: View {
                 .shadow(color: scoreColor.opacity(0.5), radius: 6)
 
             // Center content
-            VStack(spacing: 2) {
+            VStack(spacing: Theme.spacingXXS) {
                 Text("\(Int(displayedScore))%")
-                    .font(.system(size: size * 0.22, weight: .bold, design: .rounded))
+                    .font(Theme.fontGaugeScore(forSize: size))
                     .foregroundStyle(.white)
                     .contentTransition(.numericText())
 
                 Text("blocked")
-                    .font(.system(size: size * 0.06))
+                    .font(Theme.fontGaugeSubtitle(forSize: size))
                     .foregroundStyle(.white.opacity(0.5))
             }
         }

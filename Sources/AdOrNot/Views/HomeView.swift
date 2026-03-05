@@ -5,6 +5,7 @@ struct HomeView: View {
     @Bindable var viewModel: TestViewModel
     @Environment(\.modelContext) private var modelContext
     @State private var availableWidth: CGFloat = 600
+    @Environment(\.uiScale) private var uiScale
 
     private var heroCircleSize: CGFloat {
         min(140, max(60, availableWidth * 0.22))
@@ -14,9 +15,6 @@ struct HomeView: View {
         heroCircleSize * 0.46
     }
 
-    private var heroTitleSize: CGFloat {
-        min(28, max(18, availableWidth * 0.045))
-    }
 
     var body: some View {
         Group {
@@ -61,7 +59,7 @@ struct HomeView: View {
                     Spacer(minLength: Theme.spacingXL)
                 }
                 .padding(.horizontal, Theme.spacingXL)
-                .frame(maxWidth: 600)
+                .frame(maxWidth: 600 * uiScale)
                 .frame(maxWidth: .infinity)
                 .onGeometryChange(for: CGFloat.self) { proxy in
                     proxy.size.width
@@ -92,14 +90,14 @@ struct HomeView: View {
 
             VStack(spacing: Theme.spacingSM) {
                 Text("Test Your Ad Blocker")
-                    .font(.system(size: heroTitleSize, weight: .bold, design: .rounded))
+                    .font(Theme.fontHeroTitle(forWidth: availableWidth, scale: uiScale))
                     .foregroundStyle(.white)
 
                 Text("Check if your DNS filter or ad blocker is effectively blocking known advertising, analytics, and tracking domains.")
-                    .font(.body)
+                    .font(Theme.scaledBody(uiScale))
                     .foregroundStyle(.white.opacity(0.6))
                     .multilineTextAlignment(.center)
-                    .lineSpacing(4)
+                    .lineSpacing(Theme.spacingXS)
             }
         }
     }
@@ -138,7 +136,7 @@ struct HomeView: View {
             .pickerStyle(.segmented)
 
             Text(viewModel.testMode.description)
-                .font(.caption)
+                .font(Theme.scaledCaption(uiScale))
                 .foregroundStyle(.white.opacity(0.5))
                 .multilineTextAlignment(.center)
         }
@@ -161,9 +159,9 @@ struct HomeView: View {
                 Image(systemName: "play.fill")
                 Text("Start Test")
             }
-            .frame(maxWidth: 280)
+            .frame(maxWidth: Theme.scaled(Theme.buttonMaxWidth, by: uiScale))
         }
-        .buttonStyle(GradientButtonStyle(isDisabled: viewModel.networkUnavailable))
+        .buttonStyle(GradientButtonStyle(isDisabled: viewModel.networkUnavailable, scale: uiScale))
         .disabled(viewModel.networkUnavailable)
     }
 }

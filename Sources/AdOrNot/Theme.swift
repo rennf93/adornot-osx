@@ -104,11 +104,89 @@ enum Theme {
     static let animationDefault: Double = 0.25
     static let animationGaugeFill: Double = 1.2
 
+    // MARK: - Typography
+
+    static let fontDisplayTitle: Font = .system(size: 28, weight: .bold, design: .rounded)
+    static let fontPageTitle: Font = .system(size: 24, weight: .bold, design: .rounded)
+    static let fontScoreLabel: Font = .system(size: 18, weight: .semibold, design: .rounded)
+    static let fontIconMD: Font = .system(size: 16)
+    static let fontSidebarTitle: Font = .system(size: 14, weight: .bold, design: .rounded)
+    static let fontSidebarItem: Font = .system(size: 13, weight: .medium)
+    static let fontCode: Font = .system(size: 11, design: .monospaced)
+    static let fontIconSM: Font = .system(size: 11, weight: .bold)
+    static let fontBadge: Font = .system(size: 9, weight: .medium)
+
+    static func fontHeroTitle(forWidth width: CGFloat, scale: CGFloat = 1.0) -> Font {
+        .system(size: min(28, max(18, width * 0.045)) * scale, weight: .bold, design: .rounded)
+    }
+    static func fontGaugeScore(forSize size: CGFloat) -> Font {
+        .system(size: size * 0.22, weight: .bold, design: .rounded)
+    }
+    static func fontGaugeSubtitle(forSize size: CGFloat) -> Font {
+        .system(size: max(9, size * 0.06))
+    }
+    static func fontRingCount(forSize size: CGFloat) -> Font {
+        .system(size: max(11, size * 0.07))
+    }
+
+    // MARK: - Element Sizes
+
+    static let iconSizeXL: CGFloat = 44
+    static let iconContainerMD: CGFloat = 36
+    static let iconContainerSM: CGFloat = 32
+    static let statusCircleSize: CGFloat = 28
+    static let logoSizeLG: CGFloat = 80
+    static let logoSizeMD: CGFloat = 56
+    static let logoSizeSM: CGFloat = 48
+    static let logoSizeXS: CGFloat = 32
+    static let sidebarIconWidth: CGFloat = 24
+    static let miniProgressBarWidth: CGFloat = 60
+    static let progressBarHeight: CGFloat = 4
+    static let glowCircleSize: CGFloat = 100
+    static let buttonMaxWidth: CGFloat = 280
+    static let badgePaddingH: CGFloat = 6
+    static let badgePaddingV: CGFloat = 2
+    static let spacingXXS: CGFloat = 2
+
     // MARK: - Shadows
 
     static let shadowColor = Color.black.opacity(0.15)
     static let shadowRadius: CGFloat = 12
     static let glowColor = brandBlue.opacity(0.3)
+
+    // MARK: - Responsive Scaling
+
+    /// Computes a scale factor (1.0–1.5) based on the detail pane width.
+    static func scaleFactor(forDetailWidth width: CGFloat) -> CGFloat {
+        let minWidth: CGFloat = 520
+        let maxWidth: CGFloat = 1000
+        let t = (min(max(width, minWidth), maxWidth) - minWidth) / (maxWidth - minWidth)
+        return 1.0 + t * 0.5
+    }
+
+    /// Scales a value by the given factor.
+    static func scaled(_ value: CGFloat, by scale: CGFloat) -> CGFloat {
+        value * scale
+    }
+
+    // MARK: - Scaled Typography
+
+    static func fontDisplayTitle(_ s: CGFloat) -> Font { .system(size: 28 * s, weight: .bold, design: .rounded) }
+    static func fontPageTitle(_ s: CGFloat) -> Font { .system(size: 24 * s, weight: .bold, design: .rounded) }
+    static func fontScoreLabel(_ s: CGFloat) -> Font { .system(size: 18 * s, weight: .semibold, design: .rounded) }
+    static func fontIconMD(_ s: CGFloat) -> Font { .system(size: 16 * s) }
+    static func fontCode(_ s: CGFloat) -> Font { .system(size: 11 * s, design: .monospaced) }
+    static func fontIconSM(_ s: CGFloat) -> Font { .system(size: 11 * s, weight: .bold) }
+    static func fontBadge(_ s: CGFloat) -> Font { .system(size: 9 * s, weight: .medium) }
+
+    // MARK: - Scaled Semantic Fonts
+
+    static func scaledHeadline(_ s: CGFloat) -> Font { .system(size: 13 * s, weight: .semibold) }
+    static func scaledSubheadline(_ s: CGFloat) -> Font { .system(size: 11 * s) }
+    static func scaledBody(_ s: CGFloat) -> Font { .system(size: 13 * s) }
+    static func scaledCaption(_ s: CGFloat) -> Font { .system(size: 10 * s) }
+    static func scaledCaption2(_ s: CGFloat) -> Font { .system(size: 9 * s) }
+    static func scaledTitle3(_ s: CGFloat) -> Font { .system(size: 15 * s, weight: .bold) }
 
     // MARK: - Helpers
 
@@ -147,6 +225,19 @@ enum Theme {
     }
 }
 
+// MARK: - UI Scale Environment Key
+
+private struct UIScaleKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 1.0
+}
+
+extension EnvironmentValues {
+    var uiScale: CGFloat {
+        get { self[UIScaleKey.self] }
+        set { self[UIScaleKey.self] = newValue }
+    }
+}
+
 // MARK: - Glass Card Modifier
 
 struct GlassCard: ViewModifier {
@@ -181,13 +272,14 @@ extension View {
 
 struct GradientButtonStyle: ButtonStyle {
     var isDisabled: Bool = false
+    var scale: CGFloat = 1.0
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.headline)
+            .font(Theme.scaledHeadline(scale))
             .foregroundStyle(.white)
-            .padding(.horizontal, Theme.spacingXL)
-            .padding(.vertical, Theme.spacingMD)
+            .padding(.horizontal, Theme.scaled(Theme.spacingXL, by: scale))
+            .padding(.vertical, Theme.scaled(Theme.spacingMD, by: scale))
             .background {
                 RoundedRectangle(cornerRadius: Theme.radiusMD)
                     .fill(Theme.buttonGradient)
@@ -203,12 +295,14 @@ struct GradientButtonStyle: ButtonStyle {
 // MARK: - Secondary Button Style
 
 struct SecondaryButtonStyle: ButtonStyle {
+    var scale: CGFloat = 1.0
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.headline)
+            .font(Theme.scaledHeadline(scale))
             .foregroundStyle(Theme.brandBlue)
-            .padding(.horizontal, Theme.spacingXL)
-            .padding(.vertical, Theme.spacingMD)
+            .padding(.horizontal, Theme.scaled(Theme.spacingXL, by: scale))
+            .padding(.vertical, Theme.scaled(Theme.spacingMD, by: scale))
             .background {
                 RoundedRectangle(cornerRadius: Theme.radiusMD)
                     .fill(.ultraThinMaterial)
@@ -265,17 +359,18 @@ struct StatCard: View {
     let title: String
     let value: String
     let icon: String
+    @Environment(\.uiScale) private var uiScale
 
     var body: some View {
         VStack(spacing: Theme.spacingSM) {
             Image(systemName: icon)
-                .font(.title2)
+                .font(Theme.scaledTitle3(uiScale))
                 .foregroundStyle(Theme.brandBlueLight)
             Text(value)
-                .font(.title3.bold().monospacedDigit())
+                .font(Theme.scaledTitle3(uiScale).monospacedDigit())
                 .foregroundStyle(.white)
             Text(title)
-                .font(.caption)
+                .font(Theme.scaledCaption(uiScale))
                 .foregroundStyle(.white.opacity(0.6))
         }
         .frame(maxWidth: .infinity)

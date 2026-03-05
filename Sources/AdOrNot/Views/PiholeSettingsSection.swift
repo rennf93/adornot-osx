@@ -4,6 +4,7 @@ struct PiholeSettingsSection: View {
     @Bindable var viewModel: TestViewModel
     @State private var piholePassword: String = KeychainHelper.load(key: "piholePassword") ?? ""
     @State private var connectionStatus: ConnectionStatus = .idle
+    @Environment(\.uiScale) private var uiScale
 
     private enum ConnectionStatus {
         case idle, testing, success, failure
@@ -29,7 +30,7 @@ struct PiholeSettingsSection: View {
     private var hostAddressField: some View {
         VStack(alignment: .leading, spacing: Theme.spacingSM) {
             Text("Host Address")
-                .font(.subheadline.weight(.medium))
+                .font(Theme.scaledSubheadline(uiScale).weight(.medium))
                 .foregroundStyle(.white)
 
             TextField("192.168.1.x", text: Binding(
@@ -39,7 +40,7 @@ struct PiholeSettingsSection: View {
             .textFieldStyle(.roundedBorder)
 
             Text("Just the IP address (e.g. 192.168.1.100) or with port (e.g. 192.168.1.100:8080)")
-                .font(.caption2)
+                .font(Theme.scaledCaption2(uiScale))
                 .foregroundStyle(.white.opacity(0.35))
         }
         .padding(Theme.spacingMD)
@@ -50,7 +51,7 @@ struct PiholeSettingsSection: View {
     private var passwordField: some View {
         VStack(alignment: .leading, spacing: Theme.spacingSM) {
             Text("Password")
-                .font(.subheadline.weight(.medium))
+                .font(Theme.scaledSubheadline(uiScale).weight(.medium))
                 .foregroundStyle(.white)
 
             SecureField("Pi-hole password", text: $piholePassword)
@@ -64,7 +65,7 @@ struct PiholeSettingsSection: View {
                 }
 
             Text("Stored securely in Keychain")
-                .font(.caption2)
+                .font(Theme.scaledCaption2(uiScale))
                 .foregroundStyle(.white.opacity(0.35))
         }
         .padding(Theme.spacingMD)
@@ -85,7 +86,7 @@ struct PiholeSettingsSection: View {
                     Image(systemName: "antenna.radiowaves.left.and.right")
                     Text("Test Connection")
                 }
-                .font(.subheadline.weight(.medium))
+                .font(Theme.scaledSubheadline(uiScale).weight(.medium))
                 .foregroundStyle(Theme.brandBlueLight)
             }
             .buttonStyle(.plain)
@@ -107,24 +108,24 @@ struct PiholeSettingsSection: View {
             ProgressView()
                 .controlSize(.small)
         case .success:
-            HStack(spacing: 4) {
+            HStack(spacing: Theme.spacingXS) {
                 Image(systemName: "checkmark.circle.fill")
                 Text("Connected")
             }
-            .font(.caption.weight(.medium))
+            .font(Theme.scaledCaption(uiScale).weight(.medium))
             .foregroundStyle(Theme.scoreGood)
         case .failure:
-            VStack(alignment: .trailing, spacing: 2) {
-                HStack(spacing: 4) {
+            VStack(alignment: .trailing, spacing: Theme.spacingXXS) {
+                HStack(spacing: Theme.spacingXS) {
                     Image(systemName: "xmark.circle.fill")
                     Text("Failed")
                 }
-                .font(.caption.weight(.medium))
+                .font(Theme.scaledCaption(uiScale).weight(.medium))
                 .foregroundStyle(Theme.scoreWeak)
 
                 if let error = viewModel.pihole.piholeError {
                     Text(error)
-                        .font(.caption2)
+                        .font(Theme.scaledCaption2(uiScale))
                         .foregroundStyle(.white.opacity(0.5))
                         .lineLimit(2)
                 }

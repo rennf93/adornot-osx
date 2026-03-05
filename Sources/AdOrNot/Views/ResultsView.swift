@@ -6,6 +6,7 @@ struct ResultsView: View {
     @State private var appeared = false
     @State private var availableWidth: CGFloat = 600
     @State private var blocklistExpanded = false
+    @Environment(\.uiScale) private var uiScale
 
     private var gaugeSize: CGFloat {
         min(220, max(80, availableWidth * 0.35))
@@ -41,7 +42,7 @@ struct ResultsView: View {
                     VStack(spacing: Theme.spacingMD) {
                         HStack {
                             Text("Category Breakdown")
-                                .font(.headline)
+                                .font(Theme.scaledHeadline(uiScale))
                                 .foregroundStyle(.white)
                             Spacer()
                         }
@@ -73,7 +74,7 @@ struct ResultsView: View {
                         .padding(.vertical, Theme.spacingMD)
                 }
                 .padding(.horizontal, Theme.spacingLG)
-                .frame(maxWidth: 1200)
+                .frame(maxWidth: 1200 * uiScale)
                 .frame(maxWidth: .infinity)
                 .onGeometryChange(for: CGFloat.self) { proxy in
                     proxy.size.width
@@ -102,18 +103,18 @@ struct ResultsView: View {
 
             VStack(spacing: Theme.spacingXS) {
                 Text(ScoreThreshold.label(for: viewModel.overallScore))
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .font(Theme.fontScoreLabel(uiScale))
                     .foregroundStyle(ScoreThreshold.color(for: viewModel.overallScore))
 
                 Text("\(viewModel.results.filter(\.isBlocked).count) of \(viewModel.results.count) domains blocked")
-                    .font(.subheadline)
+                    .font(Theme.scaledSubheadline(uiScale))
                     .foregroundStyle(.white.opacity(0.5))
 
-                HStack(spacing: 4) {
+                HStack(spacing: Theme.spacingXS) {
                     Image(systemName: viewModel.testMode.systemImage)
                     Text(viewModel.testMode == .pihole ? "Pi-hole blocklist domains" : "Standard test")
                 }
-                .font(.caption)
+                .font(Theme.scaledCaption(uiScale))
                 .foregroundStyle(.white.opacity(0.4))
             }
         }
@@ -132,14 +133,14 @@ struct ResultsView: View {
             } label: {
                 HStack {
                     Text("Blocklist Breakdown")
-                        .font(.headline)
+                        .font(Theme.scaledHeadline(uiScale))
                         .foregroundStyle(.white)
                     Spacer()
                     Text("\(items.count) lists")
-                        .font(.caption)
+                        .font(Theme.scaledCaption(uiScale))
                         .foregroundStyle(.white.opacity(0.5))
                     Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
+                        .font(Theme.scaledCaption(uiScale).weight(.semibold))
                         .foregroundStyle(.white.opacity(0.4))
                         .rotationEffect(.degrees(blocklistExpanded ? 90 : 0))
                 }
@@ -149,20 +150,20 @@ struct ResultsView: View {
             if blocklistExpanded {
                 ForEach(items) { item in
                     HStack(spacing: Theme.spacingSM) {
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: Theme.spacingXXS) {
                             Text(item.name)
-                                .font(.subheadline.weight(.medium))
+                                .font(Theme.scaledSubheadline(uiScale).weight(.medium))
                                 .foregroundStyle(.white)
                                 .lineLimit(1)
                             Text("\(item.blocked)/\(item.total) blocked")
-                                .font(.caption)
+                                .font(Theme.scaledCaption(uiScale))
                                 .foregroundStyle(.white.opacity(0.5))
                         }
 
                         Spacer()
 
                         Text("\(Int(item.score))%")
-                            .font(.subheadline.weight(.semibold).monospacedDigit())
+                            .font(Theme.scaledSubheadline(uiScale).weight(.semibold).monospacedDigit())
                             .foregroundStyle(ScoreThreshold.color(for: item.score))
                     }
                     .padding(Theme.spacingSM)
@@ -221,7 +222,7 @@ struct ResultsView: View {
                     Text("Share")
                 }
             }
-            .buttonStyle(SecondaryButtonStyle())
+            .buttonStyle(SecondaryButtonStyle(scale: uiScale))
 
             Button {
                 viewModel.reset()
@@ -230,9 +231,9 @@ struct ResultsView: View {
                     Image(systemName: "arrow.counterclockwise")
                     Text("New Test")
                 }
-                .frame(maxWidth: 200)
+                .frame(maxWidth: 200 * uiScale)
             }
-            .buttonStyle(GradientButtonStyle())
+            .buttonStyle(GradientButtonStyle(scale: uiScale))
         }
     }
 }

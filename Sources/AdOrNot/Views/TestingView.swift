@@ -4,6 +4,7 @@ struct TestingView: View {
     @Bindable var viewModel: TestViewModel
     @State private var pulseScale: CGFloat = 1.0
     @State private var availableWidth: CGFloat = 600
+    @Environment(\.uiScale) private var uiScale
 
     private var ringSize: CGFloat {
         min(200, max(100, availableWidth * 0.35))
@@ -37,7 +38,7 @@ struct TestingView: View {
                         Text("Cancel")
                     }
                 }
-                .buttonStyle(SecondaryButtonStyle())
+                .buttonStyle(SecondaryButtonStyle(scale: uiScale))
                 .padding(.bottom, Theme.spacingXL)
             }
             .padding(.horizontal, Theme.spacingXL)
@@ -92,12 +93,12 @@ struct TestingView: View {
             // Center content
             VStack(spacing: Theme.spacingXS) {
                 Text("\(Int(viewModel.progress * 100))%")
-                    .font(.system(size: ringSize * 0.22, weight: .bold, design: .rounded))
+                    .font(Theme.fontGaugeScore(forSize: ringSize))
                     .foregroundStyle(.white)
                     .contentTransition(.numericText())
 
                 Text("\(viewModel.completedCount)/\(viewModel.totalCount)")
-                    .font(.system(size: max(11, ringSize * 0.07)))
+                    .font(Theme.fontRingCount(forSize: ringSize))
                     .foregroundStyle(.white.opacity(0.5))
             }
         }
@@ -115,12 +116,12 @@ struct TestingView: View {
                     .controlSize(.small)
                     .tint(.white)
                 Text("Testing...")
-                    .font(.headline)
+                    .font(Theme.scaledHeadline(uiScale))
                     .foregroundStyle(.white)
             }
 
             Text(viewModel.currentDomain)
-                .font(.caption.monospaced())
+                .font(Theme.scaledCaption(uiScale).monospaced())
                 .foregroundStyle(.white.opacity(0.4))
                 .lineLimit(1)
                 .truncationMode(.middle)

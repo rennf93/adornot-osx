@@ -5,6 +5,7 @@ struct HistoryDetailView: View {
     @State private var showShareSheet = false
     @State private var appeared = false
     @State private var availableWidth: CGFloat = 600
+    @Environment(\.uiScale) private var uiScale
 
     private var gaugeSize: CGFloat {
         min(220, max(80, availableWidth * 0.35))
@@ -35,7 +36,7 @@ struct HistoryDetailView: View {
                     VStack(spacing: Theme.spacingMD) {
                         HStack {
                             Text("Category Breakdown")
-                                .font(.headline)
+                                .font(Theme.scaledHeadline(uiScale))
                                 .foregroundStyle(.white)
                             Spacer()
                         }
@@ -58,7 +59,7 @@ struct HistoryDetailView: View {
                     }
                 }
                 .padding(.horizontal, Theme.spacingLG)
-                .frame(maxWidth: 1200)
+                .frame(maxWidth: 1200 * uiScale)
                 .frame(maxWidth: .infinity)
                 .padding(.bottom, Theme.spacingLG)
                 .onGeometryChange(for: CGFloat.self) { proxy in
@@ -125,14 +126,14 @@ struct HistoryDetailView: View {
     private func infoItem(icon: String, label: String, value: String) -> some View {
         VStack(spacing: Theme.spacingXS) {
             Image(systemName: icon)
-                .font(.caption)
+                .font(Theme.scaledCaption(uiScale))
                 .foregroundStyle(Theme.brandBlueLight)
             Text(value)
-                .font(.caption.weight(.medium))
+                .font(Theme.scaledCaption(uiScale).weight(.medium))
                 .foregroundStyle(.white)
                 .lineLimit(1)
             Text(label)
-                .font(.caption2)
+                .font(Theme.scaledCaption2(uiScale))
                 .foregroundStyle(.white.opacity(0.4))
         }
         .frame(maxWidth: .infinity)

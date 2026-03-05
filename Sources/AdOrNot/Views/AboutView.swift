@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct AboutView: View {
+    @Environment(\.uiScale) private var uiScale
+
     var body: some View {
         ZStack {
             Theme.backgroundGradient
@@ -12,18 +14,18 @@ struct AboutView: View {
                         ZStack {
                             Circle()
                                 .fill(Theme.brandBlue.opacity(0.15))
-                                .frame(width: 100, height: 100)
+                                .frame(width: Theme.scaled(Theme.glowCircleSize, by: uiScale), height: Theme.scaled(Theme.glowCircleSize, by: uiScale))
                                 .blur(radius: 15)
 
                             Image("AppLogo")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 56, height: 56)
+                                .frame(width: Theme.scaled(Theme.logoSizeMD, by: uiScale), height: Theme.scaled(Theme.logoSizeMD, by: uiScale))
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
 
                         Text("AdOrNot")
-                            .font(.system(size: 24, weight: .bold, design: .rounded))
+                            .font(Theme.fontPageTitle(uiScale))
                             .foregroundStyle(.white)
                     }
                     .padding(.top, Theme.spacingLG)
@@ -50,14 +52,14 @@ struct AboutView: View {
                         Image(systemName: "doc.text")
                             .foregroundStyle(Theme.brandBlueLight)
                         Text("License: GPLv3")
-                            .font(.caption)
+                            .font(Theme.scaledCaption(uiScale))
                             .foregroundStyle(.white.opacity(0.5))
                         Spacer()
                     }
                     .padding(.horizontal, Theme.spacingXS)
                 }
                 .padding(.horizontal, Theme.spacingLG)
-                .frame(maxWidth: 500)
+                .frame(maxWidth: 500 * uiScale)
                 .frame(maxWidth: .infinity)
             }
         }
@@ -68,13 +70,13 @@ struct AboutView: View {
         VStack(alignment: .leading, spacing: Theme.spacingSM) {
             if let title {
                 Text(title)
-                    .font(.headline)
+                    .font(Theme.scaledHeadline(uiScale))
                     .foregroundStyle(.white)
             }
             Text(text)
-                .font(.body)
+                .font(Theme.scaledBody(uiScale))
                 .foregroundStyle(.white.opacity(0.7))
-                .lineSpacing(4)
+                .lineSpacing(Theme.spacingXS)
         }
     }
 }

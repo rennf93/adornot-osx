@@ -5,6 +5,7 @@ struct DomainsView: View {
     @State private var searchText = ""
     @State private var expandedSections: Set<String> = []
     @State private var availableWidth: CGFloat = 600
+    @Environment(\.uiScale) private var uiScale
 
     @Environment(\.openURL) private var openURL
 
@@ -55,7 +56,7 @@ struct DomainsView: View {
                 }
                 .padding(.horizontal, Theme.spacingLG)
                 .padding(.vertical, Theme.spacingMD)
-                .frame(maxWidth: 1000)
+                .frame(maxWidth: 1000 * uiScale)
                 .frame(maxWidth: .infinity)
                 .onGeometryChange(for: CGFloat.self) { proxy in
                     proxy.size.width
@@ -195,20 +196,20 @@ struct DomainsView: View {
                         ZStack {
                             RoundedRectangle(cornerRadius: Theme.radiusSM)
                                 .fill(Theme.brandBlue.opacity(0.15))
-                                .frame(width: 32, height: 32)
+                                .frame(width: Theme.scaled(Theme.iconContainerSM, by: uiScale), height: Theme.scaled(Theme.iconContainerSM, by: uiScale))
 
                             Image(systemName: icon)
-                                .font(.system(size: 14))
+                                .font(Theme.fontSidebarItem)
                                 .foregroundStyle(Theme.brandBlueLight)
                         }
                     }
 
                     VStack(alignment: .leading, spacing: 1) {
                         Text(title)
-                            .font(.subheadline.weight(.semibold))
+                            .font(Theme.scaledSubheadline(uiScale).weight(.semibold))
                             .foregroundStyle(.white)
                         Text(subtitle)
-                            .font(.caption2)
+                            .font(Theme.scaledCaption2(uiScale))
                             .foregroundStyle(.white.opacity(0.4))
                     }
 
@@ -219,14 +220,14 @@ struct DomainsView: View {
                             openURL(url)
                         } label: {
                             Image(systemName: "arrow.up.right.square")
-                                .font(.caption)
+                                .font(Theme.scaledCaption(uiScale))
                                 .foregroundStyle(Theme.brandBlueLight)
                         }
                         .buttonStyle(.plain)
                     }
 
                     Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
+                        .font(Theme.scaledCaption(uiScale).weight(.semibold))
                         .foregroundStyle(.white.opacity(0.3))
                         .rotationEffect(.degrees(expandedSections.contains(key) ? 90 : 0))
                 }
@@ -255,7 +256,7 @@ struct DomainsView: View {
     private func domainRow(_ domain: TestDomain) -> some View {
         HStack(spacing: Theme.spacingSM) {
             Text(domain.hostname)
-                .font(.caption.monospaced())
+                .font(Theme.scaledCaption(uiScale).monospaced())
                 .foregroundStyle(.white.opacity(0.8))
                 .lineLimit(1)
 
@@ -263,7 +264,7 @@ struct DomainsView: View {
 
             if grouping == .byCategory {
                 Text(domain.provider)
-                    .font(.caption2)
+                    .font(Theme.scaledCaption2(uiScale))
                     .foregroundStyle(.white.opacity(0.4))
             }
 
@@ -277,10 +278,10 @@ struct DomainsView: View {
 
     private func categoryBadge(_ category: TestCategory) -> some View {
         Text(category.rawValue)
-            .font(.system(size: 9, weight: .medium))
+            .font(Theme.fontBadge(uiScale))
             .foregroundStyle(Theme.brandBlueLight)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
+            .padding(.horizontal, Theme.scaled(Theme.badgePaddingH, by: uiScale))
+            .padding(.vertical, Theme.scaled(Theme.badgePaddingV, by: uiScale))
             .background(
                 Capsule()
                     .fill(Theme.brandBlue.opacity(0.15))
@@ -295,7 +296,7 @@ struct DomainsView: View {
 
             if filteredBlocklists.isEmpty {
                 Text("No blocklists match your search.")
-                    .font(.caption)
+                    .font(Theme.scaledCaption(uiScale))
                     .foregroundStyle(.white.opacity(0.4))
                     .frame(maxWidth: .infinity)
                     .padding(Theme.spacingLG)
@@ -315,13 +316,13 @@ struct DomainsView: View {
     private func blocklistCard(_ entry: BlocklistEntry) -> some View {
         VStack(alignment: .leading, spacing: Theme.spacingSM) {
             HStack {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: Theme.spacingXXS) {
                     Text(entry.name)
-                        .font(.subheadline.weight(.semibold))
+                        .font(Theme.scaledSubheadline(uiScale).weight(.semibold))
                         .foregroundStyle(.white)
                         .lineLimit(1)
                     Text("by \(entry.author)")
-                        .font(.caption2)
+                        .font(Theme.scaledCaption2(uiScale))
                         .foregroundStyle(.white.opacity(0.4))
                 }
                 Spacer()
@@ -329,32 +330,32 @@ struct DomainsView: View {
                     openURL(entry.websiteURL)
                 } label: {
                     Image(systemName: "arrow.up.right.square")
-                        .font(.caption)
+                        .font(Theme.scaledCaption(uiScale))
                         .foregroundStyle(Theme.brandBlueLight)
                 }
                 .buttonStyle(.plain)
             }
 
             Text(entry.description)
-                .font(.caption)
+                .font(Theme.scaledCaption(uiScale))
                 .foregroundStyle(.white.opacity(0.6))
                 .lineLimit(3)
 
-            HStack(spacing: 6) {
+            HStack(spacing: Theme.badgePaddingH) {
                 Text(entry.category.rawValue)
-                    .font(.system(size: 9, weight: .medium))
+                    .font(Theme.fontBadge(uiScale))
                     .foregroundStyle(Theme.brandBlueLight)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
+                    .padding(.horizontal, Theme.scaled(Theme.badgePaddingH, by: uiScale))
+                    .padding(.vertical, Theme.scaled(Theme.badgePaddingV, by: uiScale))
                     .background(
                         Capsule().fill(Theme.brandBlue.opacity(0.15))
                     )
 
                 Text(entry.format.rawValue)
-                    .font(.system(size: 9, weight: .medium))
+                    .font(Theme.fontBadge(uiScale))
                     .foregroundStyle(.white.opacity(0.5))
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
+                    .padding(.horizontal, Theme.scaled(Theme.badgePaddingH, by: uiScale))
+                    .padding(.vertical, Theme.scaled(Theme.badgePaddingV, by: uiScale))
                     .background(
                         Capsule().fill(Color.white.opacity(0.08))
                     )

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DomainResultRow: View {
     let result: TestResult
+    @Environment(\.uiScale) private var uiScale
 
     var body: some View {
         HStack(spacing: Theme.spacingSM) {
@@ -11,23 +12,23 @@ struct DomainResultRow: View {
                     .fill(result.isBlocked
                           ? Theme.scoreGood.opacity(0.15)
                           : Theme.scoreWeak.opacity(0.15))
-                    .frame(width: 28, height: 28)
+                    .frame(width: Theme.scaled(Theme.statusCircleSize, by: uiScale), height: Theme.scaled(Theme.statusCircleSize, by: uiScale))
 
                 Image(systemName: result.isBlocked ? "checkmark" : "xmark")
-                    .font(.system(size: 11, weight: .bold))
+                    .font(Theme.fontIconSM(uiScale))
                     .foregroundStyle(result.isBlocked ? Theme.scoreGood : Theme.scoreWeak)
             }
 
             // Domain info
             VStack(alignment: .leading, spacing: 1) {
                 Text(result.domain.hostname)
-                    .font(.caption.monospaced())
+                    .font(Theme.scaledCaption(uiScale).monospaced())
                     .foregroundStyle(.white.opacity(0.85))
                     .lineLimit(1)
                     .truncationMode(.middle)
 
                 Text(result.domain.provider)
-                    .font(.caption2)
+                    .font(Theme.scaledCaption2(uiScale))
                     .foregroundStyle(.white.opacity(0.35))
             }
 
@@ -36,10 +37,10 @@ struct DomainResultRow: View {
             // Response time
             if let ms = result.responseTimeMs, !result.isBlocked {
                 Text("\(Int(ms))ms")
-                    .font(.caption2.monospacedDigit())
+                    .font(Theme.scaledCaption2(uiScale).monospacedDigit())
                     .foregroundStyle(.white.opacity(0.3))
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
+                    .padding(.horizontal, Theme.scaled(Theme.badgePaddingH, by: uiScale))
+                    .padding(.vertical, Theme.scaled(Theme.badgePaddingV, by: uiScale))
                     .background {
                         Capsule()
                             .fill(Color.white.opacity(0.06))

@@ -3,6 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @State private var viewModel = TestViewModel()
     @State private var selectedTab: AppTab = .test
+    @State private var detailWidth: CGFloat = 600
 
     enum AppTab: String, CaseIterable {
         case test = "Test"
@@ -55,10 +56,10 @@ struct ContentView: View {
                     Image("AppLogo")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 32, height: 32)
+                        .frame(width: Theme.logoSizeXS, height: Theme.logoSizeXS)
                         .clipShape(RoundedRectangle(cornerRadius: 6))
                     Text("AdOrNot")
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .font(Theme.fontSidebarTitle)
                         .foregroundStyle(.white)
                 }
                 .padding(.vertical, Theme.spacingLG)
@@ -94,10 +95,11 @@ struct ContentView: View {
         } label: {
             HStack(spacing: Theme.spacingSM) {
                 Image(systemName: tab.icon)
-                    .font(.system(size: 14, weight: .medium))
-                    .frame(width: 24)
+                    .font(Theme.fontSidebarItem)
+                    .frame(width: Theme.sidebarIconWidth)
                 Text(tab.rawValue)
-                    .font(.system(size: 13, weight: selectedTab == tab ? .semibold : .regular))
+                    .font(Theme.fontSidebarItem)
+                    .fontWeight(selectedTab == tab ? .semibold : .regular)
                 Spacer()
             }
             .foregroundStyle(selectedTab == tab ? .white : .white.opacity(0.6))
@@ -120,6 +122,16 @@ struct ContentView: View {
             tabContent(for: selectedTab)
         }
         .id(selectedTab)
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            proxy.size.width
+        } action: { newWidth in
+            var t = Transaction()
+            t.animation = nil
+            withTransaction(t) {
+                detailWidth = newWidth
+            }
+        }
+        .environment(\.uiScale, Theme.scaleFactor(forDetailWidth: detailWidth))
     }
 
     @ViewBuilder

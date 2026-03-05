@@ -18,7 +18,7 @@ struct LaunchView: View {
                     Image("AppLogo")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 80, height: 80)
+                        .frame(width: Theme.logoSizeLG, height: Theme.logoSizeLG)
                         .clipShape(RoundedRectangle(cornerRadius: 18))
                         .scaleEffect(iconScale)
                         .opacity(iconOpacity)
@@ -27,7 +27,7 @@ struct LaunchView: View {
 
                     VStack(spacing: Theme.spacingSM) {
                         Text("AdOrNot")
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .font(Theme.fontDisplayTitle)
                             .foregroundStyle(.white)
 
                         Text("Test your ad blocker")

@@ -6,6 +6,7 @@ struct CategoryResultView: View {
     var isCompact: Bool = false
 
     @State private var isExpanded = false
+    @Environment(\.uiScale) private var uiScale
 
     private var blockedCount: Int { results.filter(\.isBlocked).count }
 
@@ -54,25 +55,25 @@ struct CategoryResultView: View {
             ZStack {
                 RoundedRectangle(cornerRadius: Theme.radiusSM)
                     .fill(Theme.brandBlue.opacity(0.15))
-                    .frame(width: 36, height: 36)
+                    .frame(width: Theme.scaled(Theme.iconContainerMD, by: uiScale), height: Theme.scaled(Theme.iconContainerMD, by: uiScale))
 
                 Image(systemName: category.systemImage)
-                    .font(.system(size: 16))
+                    .font(Theme.fontIconMD(uiScale))
                     .foregroundStyle(Theme.brandBlueLight)
             }
 
             Text(category.rawValue)
-                .font(.headline)
+                .font(Theme.scaledHeadline(uiScale))
                 .foregroundStyle(.white)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
 
             Text("\(Int(score))%")
-                .font(.title3.bold().monospacedDigit())
+                .font(Theme.scaledTitle3(uiScale).monospacedDigit())
                 .foregroundStyle(ScoreThreshold.color(for: score))
 
             Text("\(blockedCount)/\(results.count) blocked")
-                .font(.caption)
+                .font(Theme.scaledCaption(uiScale))
                 .foregroundStyle(.white.opacity(0.5))
 
             GeometryReader { geo in
@@ -84,7 +85,7 @@ struct CategoryResultView: View {
                         .frame(width: geo.size.width * (score / 100))
                 }
             }
-            .frame(height: 4)
+            .frame(height: Theme.scaled(Theme.progressBarHeight, by: uiScale))
             .padding(.horizontal, Theme.spacingSM)
         }
         .padding(Theme.spacingMD)
@@ -102,20 +103,20 @@ struct CategoryResultView: View {
             ZStack {
                 RoundedRectangle(cornerRadius: Theme.radiusSM)
                     .fill(Theme.brandBlue.opacity(0.15))
-                    .frame(width: 36, height: 36)
+                    .frame(width: Theme.scaled(Theme.iconContainerMD, by: uiScale), height: Theme.scaled(Theme.iconContainerMD, by: uiScale))
 
                 Image(systemName: category.systemImage)
-                    .font(.system(size: 16))
+                    .font(Theme.fontIconMD(uiScale))
                     .foregroundStyle(Theme.brandBlueLight)
             }
 
             // Category info
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Theme.spacingXXS) {
                 Text(category.rawValue)
-                    .font(.headline)
+                    .font(Theme.scaledHeadline(uiScale))
                     .foregroundStyle(.white)
                 Text("\(blockedCount)/\(results.count) blocked")
-                    .font(.caption)
+                    .font(Theme.scaledCaption(uiScale))
                     .foregroundStyle(.white.opacity(0.5))
             }
 
@@ -124,7 +125,7 @@ struct CategoryResultView: View {
             // Score + progress
             VStack(alignment: .trailing, spacing: 4) {
                 Text("\(Int(score))%")
-                    .font(.title3.bold().monospacedDigit())
+                    .font(Theme.scaledTitle3(uiScale).monospacedDigit())
                     .foregroundStyle(ScoreThreshold.color(for: score))
 
                 // Mini progress bar
@@ -137,12 +138,12 @@ struct CategoryResultView: View {
                             .frame(width: geo.size.width * (score / 100))
                     }
                 }
-                .frame(width: 60, height: 4)
+                .frame(width: Theme.scaled(Theme.miniProgressBarWidth, by: uiScale), height: Theme.scaled(Theme.progressBarHeight, by: uiScale))
             }
 
             // Chevron
             Image(systemName: "chevron.right")
-                .font(.caption.weight(.semibold))
+                .font(Theme.scaledCaption(uiScale).weight(.semibold))
                 .foregroundStyle(.white.opacity(0.3))
                 .rotationEffect(.degrees(isExpanded ? 90 : 0))
         }

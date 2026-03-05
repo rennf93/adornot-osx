@@ -6,6 +6,7 @@ struct SettingsView: View {
     @State private var showClearConfirmation = false
     @State private var showAbout = false
     @State private var availableWidth: CGFloat = 500
+    @Environment(\.uiScale) private var uiScale
 
     private var categoryColumnCount: Int {
         Theme.responsiveColumnCount(
@@ -29,7 +30,7 @@ struct SettingsView: View {
                 }
                 .padding(.horizontal, Theme.spacingLG)
                 .padding(.vertical, Theme.spacingMD)
-                .frame(maxWidth: 900)
+                .frame(maxWidth: 900 * uiScale)
                 .frame(maxWidth: .infinity)
                 .onGeometryChange(for: CGFloat.self) { proxy in
                     proxy.size.width
@@ -63,7 +64,7 @@ struct SettingsView: View {
                 Image(systemName: "globe")
                     .foregroundStyle(Theme.brandBlueLight)
                 Text("\(viewModel.domainsToTest.count) domains selected")
-                    .font(.caption)
+                    .font(Theme.scaledCaption(uiScale))
                     .foregroundStyle(.white.opacity(0.5))
                 Spacer()
             }
@@ -87,21 +88,21 @@ struct SettingsView: View {
                 ZStack {
                     RoundedRectangle(cornerRadius: Theme.radiusSM)
                         .fill(Theme.brandBlue.opacity(isSelected ? 0.25 : 0.10))
-                        .frame(width: 40, height: 40)
+                        .frame(width: Theme.scaled(Theme.iconContainerMD, by: uiScale), height: Theme.scaled(Theme.iconContainerMD, by: uiScale))
 
                     Image(systemName: category.systemImage)
-                        .font(.system(size: 18))
+                        .font(Theme.fontIconMD(uiScale))
                         .foregroundStyle(isSelected ? Theme.brandBlueLight : .white.opacity(0.4))
                 }
 
                 Text(category.rawValue)
-                    .font(.subheadline.weight(.medium))
+                    .font(Theme.scaledSubheadline(uiScale).weight(.medium))
                     .foregroundStyle(isSelected ? .white : .white.opacity(0.5))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
 
                 Text("\(DomainRegistry.domains(for: category).count) domains")
-                    .font(.caption2)
+                    .font(Theme.scaledCaption2(uiScale))
                     .foregroundStyle(.white.opacity(0.4))
             }
             .frame(maxWidth: .infinity)
@@ -109,7 +110,7 @@ struct SettingsView: View {
             .overlay(alignment: .topTrailing) {
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.caption)
+                        .font(Theme.scaledCaption(uiScale))
                         .foregroundStyle(Theme.brandBlueLight)
                         .padding(Theme.spacingSM)
                 }
@@ -137,11 +138,11 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: Theme.spacingSM) {
                     HStack {
                         Text("Request Timeout")
-                            .font(.subheadline.weight(.medium))
+                            .font(Theme.scaledSubheadline(uiScale).weight(.medium))
                             .foregroundStyle(.white)
                         Spacer()
                         Text("\(Int(viewModel.requestTimeout))s")
-                            .font(.subheadline.monospacedDigit())
+                            .font(Theme.scaledSubheadline(uiScale).monospacedDigit())
                             .foregroundStyle(Theme.brandBlueLight)
                     }
 
@@ -149,7 +150,7 @@ struct SettingsView: View {
                         .tint(Theme.brandBlue)
 
                     Text("How long to wait for each domain before marking it as blocked")
-                        .font(.caption2)
+                        .font(Theme.scaledCaption2(uiScale))
                         .foregroundStyle(.white.opacity(0.35))
                 }
                 .padding(Theme.spacingMD)
@@ -160,10 +161,10 @@ struct SettingsView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 1) {
                         Text("Export Format")
-                            .font(.subheadline.weight(.medium))
+                            .font(Theme.scaledSubheadline(uiScale).weight(.medium))
                             .foregroundStyle(.white)
                         Text("Default format when sharing results")
-                            .font(.caption2)
+                            .font(Theme.scaledCaption2(uiScale))
                             .foregroundStyle(.white.opacity(0.35))
                     }
                     Spacer()
@@ -195,7 +196,7 @@ struct SettingsView: View {
                     Text("Clear All History")
                     Spacer()
                 }
-                .font(.subheadline.weight(.medium))
+                .font(Theme.scaledSubheadline(uiScale).weight(.medium))
                 .foregroundStyle(Theme.scoreWeak)
                 .padding(Theme.spacingMD)
             }
@@ -233,25 +234,25 @@ struct SettingsView: View {
                     Image("AppLogo")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 48, height: 48)
+                        .frame(width: Theme.scaled(Theme.logoSizeSM, by: uiScale), height: Theme.scaled(Theme.logoSizeSM, by: uiScale))
                         .clipShape(RoundedRectangle(cornerRadius: Theme.radiusMD))
 
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: Theme.spacingXXS) {
                         Text("AdOrNot")
-                            .font(.headline)
+                            .font(Theme.scaledHeadline(uiScale))
                             .foregroundStyle(.white)
                         Text("Version \(AppVersion.current)")
-                            .font(.caption)
+                            .font(Theme.scaledCaption(uiScale))
                             .foregroundStyle(.white.opacity(0.5))
                         Text("\(DomainRegistry.allDomains.count) domains in database")
-                            .font(.caption2)
+                            .font(Theme.scaledCaption2(uiScale))
                             .foregroundStyle(.white.opacity(0.35))
                     }
 
                     Spacer()
 
                     Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
+                        .font(Theme.scaledCaption(uiScale).weight(.semibold))
                         .foregroundStyle(.white.opacity(0.3))
                 }
             }

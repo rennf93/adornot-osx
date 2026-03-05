@@ -19,6 +19,7 @@ import AppKit
 struct ShareSheet: View {
     let text: String
     @State private var copied = false
+    @Environment(\.uiScale) private var uiScale
 
     var body: some View {
         ZStack {
@@ -31,7 +32,7 @@ struct ShareSheet: View {
                     Image(systemName: "square.and.arrow.up")
                         .foregroundStyle(Theme.brandBlueLight)
                     Text("Export Results")
-                        .font(.headline)
+                        .font(Theme.scaledHeadline(uiScale))
                         .foregroundStyle(.white)
                     Spacer()
                 }
@@ -39,7 +40,7 @@ struct ShareSheet: View {
                 // Text content
                 ScrollView {
                     Text(text)
-                        .font(.system(size: 11, design: .monospaced))
+                        .font(Theme.fontCode(uiScale))
                         .foregroundStyle(.white.opacity(0.8))
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -73,7 +74,7 @@ struct ShareSheet: View {
                     }
                     .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(GradientButtonStyle())
+                .buttonStyle(GradientButtonStyle(scale: uiScale))
             }
             .padding(Theme.spacingLG)
         }

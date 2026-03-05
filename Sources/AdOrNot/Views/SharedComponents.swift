@@ -5,14 +5,15 @@ import SwiftUI
 struct SectionHeader: View {
     let title: String
     let icon: String
+    @Environment(\.uiScale) private var uiScale
 
     var body: some View {
         HStack(spacing: Theme.spacingSM) {
             Image(systemName: icon)
-                .font(.subheadline)
+                .font(Theme.scaledSubheadline(uiScale))
                 .foregroundStyle(Theme.brandBlueLight)
             Text(title)
-                .font(.subheadline.weight(.semibold))
+                .font(Theme.scaledSubheadline(uiScale).weight(.semibold))
                 .foregroundStyle(.white.opacity(0.7))
         }
     }
@@ -24,22 +25,23 @@ struct WarningBanner: View {
     let icon: String
     var title: String?
     let message: String
+    @Environment(\.uiScale) private var uiScale
 
     var body: some View {
         HStack(spacing: Theme.spacingSM) {
             Image(systemName: icon)
-                .font(.body)
+                .font(Theme.scaledBody(uiScale))
             if let title {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: Theme.spacingXXS) {
                     Text(title)
-                        .font(.subheadline.weight(.semibold))
+                        .font(Theme.scaledSubheadline(uiScale).weight(.semibold))
                     Text(message)
-                        .font(.caption)
+                        .font(Theme.scaledCaption(uiScale))
                         .foregroundStyle(.white.opacity(0.7))
                 }
             } else {
                 Text(message)
-                    .font(.subheadline.weight(.medium))
+                    .font(Theme.scaledSubheadline(uiScale).weight(.medium))
             }
             Spacer()
         }
