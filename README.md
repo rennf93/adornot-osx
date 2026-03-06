@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logos/final_256.png" alt="AdOrNot Logo" width="128" height="128">
+  <img src="Assets/logos/adornot_128.png" alt="AdOrNot Logo" width="128" height="128">
 </p>
 
 <h1 align="center">AdOrNot</h1>
