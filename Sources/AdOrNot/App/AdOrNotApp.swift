@@ -13,7 +13,10 @@ struct AdOrNotApp: App {
         do {
             modelContainer = try ModelContainer(for: TestReport.self)
         } catch {
-            fatalError("Failed to create ModelContainer: \(error)")
+            modelContainer = try! ModelContainer(
+                for: TestReport.self,
+                configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+            )
         }
     }
 

@@ -4,6 +4,7 @@ struct ContentView: View {
     @State private var viewModel = TestViewModel()
     @State private var selectedTab: AppTab = .test
     @State private var detailWidth: CGFloat = 600
+    @Environment(\.scenePhase) private var scenePhase
 
     enum AppTab: String, CaseIterable {
         case test = "Test"
@@ -30,6 +31,11 @@ struct ContentView: View {
             detailView
         }
         .frame(minWidth: 720, minHeight: 520)
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .background && viewModel.state == .running {
+                viewModel.cancelTest()
+            }
+        }
         #else
         TabView(selection: $selectedTab) {
             ForEach(AppTab.allCases, id: \.self) { tab in
@@ -38,6 +44,11 @@ struct ContentView: View {
                         tabContent(for: tab)
                     }
                 }
+            }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .background && viewModel.state == .running {
+                viewModel.cancelTest()
             }
         }
         #endif

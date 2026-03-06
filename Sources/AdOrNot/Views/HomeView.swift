@@ -44,9 +44,7 @@ struct HomeView: View {
                     heroSection
                     statsRow
 
-                    if viewModel.pihole.isPiholeConfigured {
-                        testModePicker
-                    }
+                    testModePicker
 
                     Spacer(minLength: Theme.spacingMD)
 
@@ -134,11 +132,24 @@ struct HomeView: View {
                 }
             }
             .pickerStyle(.segmented)
+            .disabled(!viewModel.pihole.isPiholeConfigured && viewModel.testMode == .standard)
+            .onChange(of: viewModel.pihole.isPiholeConfigured) { _, configured in
+                if !configured && viewModel.testMode == .pihole {
+                    viewModel.testMode = .standard
+                }
+            }
 
-            Text(viewModel.testMode.description)
-                .font(Theme.scaledCaption(uiScale))
-                .foregroundStyle(.white.opacity(0.5))
-                .multilineTextAlignment(.center)
+            if viewModel.pihole.isPiholeConfigured {
+                Text(viewModel.testMode.description)
+                    .font(Theme.scaledCaption(uiScale))
+                    .foregroundStyle(.white.opacity(0.5))
+                    .multilineTextAlignment(.center)
+            } else {
+                Text("Configure Pi-hole in Settings to enable blocklist testing")
+                    .font(Theme.scaledCaption(uiScale))
+                    .foregroundStyle(.white.opacity(0.4))
+                    .multilineTextAlignment(.center)
+            }
         }
         .glassCard(padding: Theme.spacingMD)
     }
